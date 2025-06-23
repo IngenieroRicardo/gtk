@@ -96,3 +96,35 @@ gboolean gtk_menu_item_get_active_wrapper(GObject *menu_item) {
     }
     return FALSE;
 }
+
+
+
+
+
+
+
+
+
+
+
+// Funciones wrapper para GtkPopover
+void gtk_popover_set_visible_wrapper(GObject *popover, gboolean visible) {
+    gtk_widget_set_visible(GTK_WIDGET(popover), visible);
+}
+
+gboolean gtk_popover_get_visible_wrapper(GObject *popover) {
+    return gtk_widget_get_visible(GTK_WIDGET(popover));
+}
+
+void show_popover(GObject *popover) {
+    if (GTK_IS_POPOVER(popover)) {
+        gtk_widget_show_all(GTK_WIDGET(popover));
+        gtk_popover_popup(GTK_POPOVER(popover));
+    }
+}
+
+void set_popover_position(GObject *popover, GtkPositionType position) {
+    if (GTK_IS_POPOVER(popover)) {
+        gtk_popover_set_position(GTK_POPOVER(popover), position);
+    }
+}

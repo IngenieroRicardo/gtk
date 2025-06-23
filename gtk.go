@@ -44,6 +44,17 @@ extern void gtk_menu_item_set_sensitive_wrapper(GObject *menu_item, gboolean sen
 extern gboolean gtk_menu_item_get_sensitive_wrapper(GObject *menu_item);
 extern void gtk_menu_item_set_active_wrapper(GObject *menu_item, gboolean active);
 extern gboolean gtk_menu_item_get_active_wrapper(GObject *menu_item);
+
+
+
+
+
+
+// Popover functions
+extern void gtk_popover_set_visible_wrapper(GObject *popover, gboolean visible);
+extern gboolean gtk_popover_get_visible_wrapper(GObject *popover);
+extern void show_popover(GObject *popover);
+extern void set_popover_position(GObject *popover, GtkPositionType position);
 */
 import "C"
 import (
@@ -575,4 +586,88 @@ func (app *GTKApp) GetCheckMenuItemStatus(itemName string) bool {
 func (app *GTKApp) ToggleCheckMenuItem(itemName string) {
 	currentState := app.GetCheckMenuItemStatus(itemName)
 	app.SetCheckMenuItemActive(itemName, !currentState)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ShowPopover muestra un GtkPopover con todas las características necesarias
+func (app *GTKApp) ShowPopover(popoverName string) {
+	cPopoverName := C.CString(popoverName)
+	defer C.free(unsafe.Pointer(cPopoverName))
+
+	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
+	if popover != nil {
+		app.setPopoverVisibility(popoverName, true)
+		C.show_popover((*C.GObject)(popover))
+	}
+}
+
+// HidePopover oculta un GtkPopover
+func (app *GTKApp) HidePopover(popoverName string) {
+	app.setPopoverVisibility(popoverName, false)
+}
+
+// SetPopoverPosition establece la posición del popover
+func (app *GTKApp) SetPopoverPosition(popoverName string, position string) {
+	cPopoverName := C.CString(popoverName)
+	defer C.free(unsafe.Pointer(cPopoverName))
+
+	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
+	if popover != nil {
+		var pos C.GtkPositionType
+		switch position {
+		case "top":
+			pos = C.GTK_POS_TOP
+		case "bottom":
+			pos = C.GTK_POS_BOTTOM
+		case "left":
+			pos = C.GTK_POS_LEFT
+		case "right":
+			pos = C.GTK_POS_RIGHT
+		default:
+			pos = C.GTK_POS_BOTTOM
+		}
+		C.set_popover_position((*C.GObject)(popover), pos)
+	}
+}
+
+// setPopoverVisibility función interna para manejar visibilidad
+func (app *GTKApp) setPopoverVisibility(popoverName string, visible bool) {
+	cPopoverName := C.CString(popoverName)
+	defer C.free(unsafe.Pointer(cPopoverName))
+
+	var cVisible C.gboolean
+	if visible {
+		cVisible = C.TRUE
+	} else {
+		cVisible = C.FALSE
+	}
+
+	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
+	if popover != nil {
+		C.gtk_popover_set_visible_wrapper((*C.GObject)(popover), cVisible)
+	}
+}
+
+// IsPopoverVisible verifica si un popover está visible
+func (app *GTKApp) IsPopoverVisible(popoverName string) bool {
+	cPopoverName := C.CString(popoverName)
+	defer C.free(unsafe.Pointer(cPopoverName))
+
+	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
+	if popover != nil {
+		return C.gtk_popover_get_visible_wrapper((*C.GObject)(popover)) != 0
+	}
+	return false
 }
