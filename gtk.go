@@ -55,30 +55,55 @@ extern void gtk_popover_set_visible_wrapper(GObject *popover, gboolean visible);
 extern gboolean gtk_popover_get_visible_wrapper(GObject *popover);
 extern void show_popover(GObject *popover);
 extern void set_popover_position(GObject *popover, GtkPositionType position);
+
+
+
+
+
+
+
+
+
+
+extern void gtk_entry_set_visibility_wrapper(GObject *entry, gboolean visible);
+extern gboolean gtk_entry_get_visibility_wrapper(GObject *entry);
+
+
+
+
+
+
+
+
+
 */
 import "C"
 import (
 	"errors"
 	"sync"
 	"unsafe"
+	"fmt"
 )
 
+
 var (
-	callbackMutex   sync.Mutex
-	callbackCounter uintptr
-	callbacks       = make(map[uintptr]func())
+    callbackMutex   sync.Mutex
+    callbacks       = make(map[string]func()) // Usamos strings como clave
 )
 
 //export goCallbackProxy
 func goCallbackProxy(data unsafe.Pointer) {
-	id := uintptr(data)
-	callbackMutex.Lock()
-	cb, ok := callbacks[id]
-	callbackMutex.Unlock()
-	if ok {
-		cb()
-	}
+    id := C.GoString((*C.char)(data))
+    callbackMutex.Lock()
+    cb, ok := callbacks[id]
+    callbackMutex.Unlock()
+    if ok {
+        cb()
+    } else {
+        fmt.Println("Callback no encontrado para ID:", id)
+    }
 }
+    
 
 type GTKApp struct {
 	builder *C.GtkBuilder
@@ -107,27 +132,33 @@ func (app *GTKApp) LoadUI(filename string) error {
 }
 
 func (app *GTKApp) ConnectSignal(widgetName, signal string, callback func()) {
-	cWidgetName := C.CString(widgetName)
-	defer C.free(unsafe.Pointer(cWidgetName))
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
 
-	cSignal := C.CString(signal)
-	defer C.free(unsafe.Pointer(cSignal))
+    cSignal := C.CString(signal)
+    defer C.free(unsafe.Pointer(cSignal))
 
-	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
-	callbackMutex.Lock()
-	callbackCounter++
-	id := callbackCounter
-	callbacks[id] = callback
-	callbackMutex.Unlock()
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget == nil {
+        return
+    }
 
-	C.g_signal_connect_data(
-		C.gpointer(widget),
-		cSignal,
-		C.GCallback(C.go_callback_bridge),
-		C.gpointer(unsafe.Pointer(id)),
-		nil,
-		0,
-	)
+    // Crear un ID único basado en widgetName y signal
+    id := widgetName + "::" + signal
+    cId := C.CString(id)
+    
+    callbackMutex.Lock()
+    callbacks[id] = callback
+    callbackMutex.Unlock()
+
+    C.g_signal_connect_data(
+        C.gpointer(widget),
+        cSignal,
+        C.GCallback(C.go_callback_bridge),
+        C.gpointer(unsafe.Pointer(cId)),
+        C.GClosureNotify(C.free), // Esto liberará la memoria cuando la señal se desconecte
+        0,
+    )
 }
 
 func (app *GTKApp) ConnectSignalDirect(widgetName, signal string, callback uintptr, data unsafe.Pointer) {
@@ -176,12 +207,12 @@ func (app *GTKApp) Quit() {
 }
 
 func (app *GTKApp) Cleanup() {
-	if app.builder != nil {
-		C.g_object_unref(C.gpointer(unsafe.Pointer(app.builder)))
-	}
-	callbackMutex.Lock()
-	callbacks = make(map[uintptr]func())
-	callbackMutex.Unlock()
+    if app.builder != nil {
+        C.g_object_unref(C.gpointer(unsafe.Pointer(app.builder)))
+    }
+    callbackMutex.Lock()
+    callbacks = make(map[string]func())
+    callbackMutex.Unlock()
 }
 
 
@@ -671,3 +702,97 @@ func (app *GTKApp) IsPopoverVisible(popoverName string) bool {
 	}
 	return false
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+func (app *GTKApp) SetRadioButtonActive(buttonName string) {
+    cButtonName := C.CString(buttonName)
+    defer C.free(unsafe.Pointer(cButtonName))
+
+    widget := C.gtk_builder_get_object(app.builder, cButtonName)
+    if widget != nil {
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.TRUE)
+    }
+}
+
+// GetRadioButtonActive obtiene el estado de un GtkRadioButton
+func (app *GTKApp) GetRadioButtonActive(buttonName string) bool {
+    cButtonName := C.CString(buttonName)
+    defer C.free(unsafe.Pointer(cButtonName))
+
+    widget := C.gtk_builder_get_object(app.builder, cButtonName)
+    if widget != nil {
+        return C.gtk_toggle_button_get_active_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
+
+
+
+
+
+
+
+
+
+// SetEntryVisibility establece la visibilidad del texto en un GtkEntry
+func (app *GTKApp) SetEntryVisibility(entryName string, visible bool) {
+    cEntryName := C.CString(entryName)
+    defer C.free(unsafe.Pointer(cEntryName))
+
+    var cVisible C.gboolean
+    if visible {
+        cVisible = C.TRUE
+    } else {
+        cVisible = C.FALSE
+    }
+
+    widget := C.gtk_builder_get_object(app.builder, cEntryName)
+    if widget != nil {
+        C.gtk_entry_set_visibility_wrapper((*C.GObject)(widget), cVisible)
+    }
+}
+
+// GetEntryVisibility obtiene la visibilidad del texto en un GtkEntry
+func (app *GTKApp) GetEntryVisibility(entryName string) bool {
+    cEntryName := C.CString(entryName)
+    defer C.free(unsafe.Pointer(cEntryName))
+
+    widget := C.gtk_builder_get_object(app.builder, cEntryName)
+    if widget != nil {
+        return C.gtk_entry_get_visibility_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

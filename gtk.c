@@ -128,3 +128,27 @@ void set_popover_position(GObject *popover, GtkPositionType position) {
         gtk_popover_set_position(GTK_POPOVER(popover), position);
     }
 }
+
+
+
+
+
+
+
+
+
+
+void gtk_entry_set_visibility_wrapper(GObject *entry, gboolean visible) {
+    gtk_entry_set_visibility(GTK_ENTRY(entry), visible);
+}
+
+gboolean gtk_entry_get_visibility_wrapper(GObject *entry) {
+    return gtk_entry_get_visibility(GTK_ENTRY(entry));
+}
+
+
+
+
+
+
+
