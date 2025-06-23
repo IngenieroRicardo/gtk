@@ -10,6 +10,40 @@ extern void goCallbackProxy(gpointer data);
 
 // Declaración de la función puente (definición en otro archivo)
 extern void go_callback_bridge(GtkWidget *widget, gpointer data);
+
+
+// Nuevas declaraciones con GObject* como parámetro
+extern void gtk_entry_set_text_wrapper(GObject *entry, const gchar *text);
+extern const gchar* gtk_entry_get_text_wrapper(GObject *entry);
+
+
+// Nuevas declaraciones para GtkLabel
+extern void gtk_label_set_text_wrapper(GObject *label, const gchar *text);
+extern const gchar* gtk_label_get_text_wrapper(GObject *label);
+
+
+
+// Nuevas declaraciones para GtkButton
+extern void gtk_button_set_label_wrapper(GObject *button, const gchar *text);
+extern const gchar* gtk_button_get_label_wrapper(GObject *button);
+extern void gtk_button_set_sensitive_wrapper(GObject *button, gboolean sensitive);
+extern gboolean gtk_button_get_sensitive_wrapper(GObject *button);
+
+
+extern void gtk_toggle_button_set_active_wrapper(GObject *toggle_widget, gboolean active);
+extern gboolean gtk_toggle_button_get_active_wrapper(GObject *toggle_widget);
+
+
+
+
+
+// Nuevas declaraciones para GtkMenuItem
+extern void gtk_menu_item_set_label_wrapper(GObject *menu_item, const gchar *label);
+extern const gchar* gtk_menu_item_get_label_wrapper(GObject *menu_item);
+extern void gtk_menu_item_set_sensitive_wrapper(GObject *menu_item, gboolean sensitive);
+extern gboolean gtk_menu_item_get_sensitive_wrapper(GObject *menu_item);
+extern void gtk_menu_item_set_active_wrapper(GObject *menu_item, gboolean active);
+extern gboolean gtk_menu_item_get_active_wrapper(GObject *menu_item);
 */
 import "C"
 import (
@@ -137,4 +171,408 @@ func (app *GTKApp) Cleanup() {
 	callbackMutex.Lock()
 	callbacks = make(map[uintptr]func())
 	callbackMutex.Unlock()
+}
+
+
+
+
+
+
+// SetEntryText establece el texto de un GtkEntry
+func (app *GTKApp) SetEntryText(widgetName, text string) {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	cText := C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		C.gtk_entry_set_text_wrapper((*C.GObject)(widget), cText)
+	}
+}
+
+// GetEntryText obtiene el texto de un GtkEntry
+func (app *GTKApp) GetEntryText(widgetName string) string {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		cText := C.gtk_entry_get_text_wrapper((*C.GObject)(widget))
+		return C.GoString(cText)
+	}
+	return ""
+}
+
+
+
+
+
+
+// SetLabelText establece el texto de un GtkLabel
+func (app *GTKApp) SetLabelText(widgetName, text string) {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	cText := C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		C.gtk_label_set_text_wrapper((*C.GObject)(widget), cText)
+	}
+}
+
+// GetLabelText obtiene el texto de un GtkLabel
+func (app *GTKApp) GetLabelText(widgetName string) string {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		cText := C.gtk_label_get_text_wrapper((*C.GObject)(widget))
+		return C.GoString(cText)
+	}
+	return ""
+}
+
+
+
+
+
+
+
+
+
+
+// SetButtonText establece el texto de un GtkButton
+func (app *GTKApp) SetButtonText(widgetName, text string) {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	cText := C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		C.gtk_button_set_label_wrapper((*C.GObject)(widget), cText)
+	}
+}
+
+// GetButtonText obtiene el texto de un GtkButton
+func (app *GTKApp) GetButtonText(widgetName string) string {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		cText := C.gtk_button_get_label_wrapper((*C.GObject)(widget))
+		return C.GoString(cText)
+	}
+	return ""
+}
+
+// SetButtonSensitive establece la sensibilidad de un GtkButton
+func (app *GTKApp) SetButtonSensitive(widgetName string, sensitive bool) {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	var cSensitive C.gboolean
+	if sensitive {
+		cSensitive = C.TRUE
+	} else {
+		cSensitive = C.FALSE
+	}
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		C.gtk_button_set_sensitive_wrapper((*C.GObject)(widget), cSensitive)
+	}
+}
+
+// GetButtonSensitive obtiene el estado de sensibilidad de un GtkButton
+func (app *GTKApp) GetButtonSensitive(widgetName string) bool {
+	cWidgetName := C.CString(widgetName)
+	defer C.free(unsafe.Pointer(cWidgetName))
+
+	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+	if widget != nil {
+		return C.gtk_button_get_sensitive_wrapper((*C.GObject)(widget)) != 0
+	}
+	return false
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// SetCheckButtonActive marca el GtkCheckButton
+func (app *GTKApp) SetCheckButtonUnchecked(widgetName string) {
+    app.setCheckButtonState(widgetName, true)
+}
+
+// SetCheckButtonInactive desmarca el GtkCheckButton
+func (app *GTKApp) SetCheckButtonChecked(widgetName string) {
+    app.setCheckButtonState(widgetName, false)
+}
+
+// Función interna para manejar el estado
+func (app *GTKApp) setCheckButtonState(widgetName string, active bool) {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+
+    var cActive C.gboolean
+    if active {
+        cActive = C.TRUE
+    } else {
+        cActive = C.FALSE
+    }
+
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), cActive)
+    }
+}
+
+// GetCheckButtonStatus (se mantiene igual)
+func (app *GTKApp) GetCheckButtonStatus(widgetName string) bool {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        return C.gtk_toggle_button_get_active_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
+
+// ToggleCheckButton (se mantiene igual)
+func (app *GTKApp) ToggleCheckButton(widgetName string) {
+    app.toggleWidget(widgetName)
+}
+
+func (app *GTKApp) ToggleToggleButton(widgetName string) {
+    app.toggleWidget(widgetName)
+}
+
+func (app *GTKApp) toggleWidget(widgetName string) {
+    currentState := app.getToggleState(widgetName)
+    app.setToggleState(widgetName, !currentState)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Funciones para ToggleButton
+func (app *GTKApp) SetToggleButtonActive(widgetName string) {
+    app.setToggleState(widgetName, true)
+}
+
+func (app *GTKApp) SetToggleButtonInactive(widgetName string) {
+    app.setToggleState(widgetName, false)
+}
+
+func (app *GTKApp) GetToggleButtonActive(widgetName string) bool {
+    return app.getToggleState(widgetName)
+}
+
+func (app *GTKApp) getToggleState(widgetName string) bool {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        return C.gtk_toggle_button_get_active_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
+
+// Función base común para toggle/check buttons
+func (app *GTKApp) setToggleState(widgetName string, active bool) {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+
+    var cActive C.gboolean
+    if active {
+        cActive = C.TRUE
+    } else {
+        cActive = C.FALSE
+    }
+
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), cActive)
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// SetMenuItemLabel establece la etiqueta de un GtkMenuItem
+func (app *GTKApp) SetMenuItemLabel(itemName, label string) {
+	cItemName := C.CString(itemName)
+	defer C.free(unsafe.Pointer(cItemName))
+
+	cLabel := C.CString(label)
+	defer C.free(unsafe.Pointer(cLabel))
+
+	item := C.gtk_builder_get_object(app.builder, cItemName)
+	if item != nil {
+		C.gtk_menu_item_set_label_wrapper((*C.GObject)(item), cLabel)
+	}
+}
+
+// GetMenuItemLabel obtiene la etiqueta de un GtkMenuItem
+func (app *GTKApp) GetMenuItemLabel(itemName string) string {
+	cItemName := C.CString(itemName)
+	defer C.free(unsafe.Pointer(cItemName))
+
+	item := C.gtk_builder_get_object(app.builder, cItemName)
+	if item != nil {
+		cLabel := C.gtk_menu_item_get_label_wrapper((*C.GObject)(item))
+		return C.GoString(cLabel)
+	}
+	return ""
+}
+
+// SetMenuItemSensitive establece la sensibilidad de un GtkMenuItem
+func (app *GTKApp) SetMenuItemSensitive(itemName string, sensitive bool) {
+	cItemName := C.CString(itemName)
+	defer C.free(unsafe.Pointer(cItemName))
+
+	var cSensitive C.gboolean
+	if sensitive {
+		cSensitive = C.TRUE
+	} else {
+		cSensitive = C.FALSE
+	}
+
+	item := C.gtk_builder_get_object(app.builder, cItemName)
+	if item != nil {
+		C.gtk_menu_item_set_sensitive_wrapper((*C.GObject)(item), cSensitive)
+	}
+}
+
+// GetMenuItemSensitive obtiene la sensibilidad de un GtkMenuItem
+func (app *GTKApp) GetMenuItemSensitive(itemName string) bool {
+	cItemName := C.CString(itemName)
+	defer C.free(unsafe.Pointer(cItemName))
+
+	item := C.gtk_builder_get_object(app.builder, cItemName)
+	if item != nil {
+		return C.gtk_menu_item_get_sensitive_wrapper((*C.GObject)(item)) != 0
+	}
+	return false
+}
+
+
+func (app *GTKApp) SetCheckMenuItemChecked(itemName string) {
+    app.setCheckMenuItemState(itemName, true)
+}
+func (app *GTKApp) SetCheckMenuItemUnchecked(itemName string) {
+    app.setCheckMenuItemState(itemName, false)
+}
+
+func (app *GTKApp) setCheckMenuItemState(itemName string, active bool) {
+    cItemName := C.CString(itemName)
+    defer C.free(unsafe.Pointer(cItemName))
+
+    var cActive C.gboolean
+    if active {
+        cActive = C.TRUE
+    } else {
+        cActive = C.FALSE
+    }
+
+    item := C.gtk_builder_get_object(app.builder, cItemName)
+    if item != nil {
+        C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), cActive)
+    }
+}
+
+// SetCheckMenuItemActive establece el estado activo de un GtkCheckMenuItem
+func (app *GTKApp) SetCheckMenuItemActive(itemName string, active bool) {
+	cItemName := C.CString(itemName)
+	defer C.free(unsafe.Pointer(cItemName))
+
+	var cActive C.gboolean
+	if active {
+		cActive = C.TRUE
+	} else {
+		cActive = C.FALSE
+	}
+
+	item := C.gtk_builder_get_object(app.builder, cItemName)
+	if item != nil {
+		C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), cActive)
+	}
+}
+
+// GetCheckMenuItemActive obtiene el estado activo de un GtkCheckMenuItem
+func (app *GTKApp) GetCheckMenuItemStatus(itemName string) bool {
+	cItemName := C.CString(itemName)
+	defer C.free(unsafe.Pointer(cItemName))
+
+	item := C.gtk_builder_get_object(app.builder, cItemName)
+	if item != nil {
+		return C.gtk_menu_item_get_active_wrapper((*C.GObject)(item)) != 0
+	}
+	return false
+}
+
+// ToggleCheckMenuItem alterna el estado de un GtkCheckMenuItem
+func (app *GTKApp) ToggleCheckMenuItem(itemName string) {
+	currentState := app.GetCheckMenuItemStatus(itemName)
+	app.SetCheckMenuItemActive(itemName, !currentState)
 }
