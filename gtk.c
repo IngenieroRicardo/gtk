@@ -523,5 +523,66 @@ gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint colum
 
 
 
+// Hace editable todo el TreeView (todas las columnas)
+void gtk_tree_view_set_editable(GtkTreeView *tree_view, gboolean editable) {
+    gint n_columns = gtk_tree_view_get_n_columns(tree_view);
+    for (gint i = 0; i < n_columns; i++) {
+        GtkTreeViewColumn *column = gtk_tree_view_get_column(tree_view, i);
+        if (column) {
+            GList *renderers = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(column));
+            for (GList *r = renderers; r != NULL; r = r->next) {
+                if (GTK_IS_CELL_RENDERER_TEXT(r->data)) {
+                    g_object_set(G_OBJECT(r->data), 
+                               "editable", editable, 
+                               NULL);
+                }
+            }
+            g_list_free(renderers);
+        }
+    }
+}
 
+// Establece el valor de una celda específica
+void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *value) {
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    if (!model || !GTK_IS_LIST_STORE(model)) return;
+
+    GtkTreeIter iter;
+    if (gtk_tree_model_iter_nth_child(model, &iter, NULL, row)) {
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter, column, value, -1);
+    }
+}
+
+
+// Función para verificar si un renderer es de tipo texto
+gboolean is_cell_renderer_text(GtkCellRenderer *renderer) {
+    return GTK_IS_CELL_RENDERER_TEXT(renderer);
+}
+
+typedef struct {
+    gpointer callback_id;
+    gchar *path;
+    gchar *new_text;
+} EditedCallbackData;
+
+void goCallbackProxyWithArgs(EditedCallbackData *data) {
+    goCallbackProxy(data->callback_id);
+    // Aquí podrías también enviar path y new_text a Go si fuera necesario
+}
+
+void go_tree_view_edited_bridge(GtkCellRendererText *renderer, 
+                              gchar *path, 
+                              gchar *new_text, 
+                              gpointer data) {
+    EditedCallbackData *cb_data = g_new(EditedCallbackData, 1);
+    cb_data->callback_id = data;
+    cb_data->path = g_strdup(path);
+    cb_data->new_text = g_strdup(new_text);
+    
+    goCallbackProxyWithArgs(cb_data);
+    
+    g_free(cb_data->path);
+    g_free(cb_data->new_text);
+    g_free(cb_data);
+}
 
