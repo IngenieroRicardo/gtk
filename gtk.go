@@ -148,6 +148,12 @@ extern void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view);
 extern void gtk_tree_view_append_column_with_title(GtkTreeView *tree_view, const gchar *title, gint column_index);
 extern GtkListStore* gtk_list_store_new_with_columns(gint n_columns, GType *types);
 extern void gtk_list_store_append_row(GtkListStore *store, gint n_columns, const gchar **values);
+
+
+
+extern void gtk_tree_view_get_model_info(GtkTreeView *tree_view, gint *n_columns, gint *n_rows);
+extern gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint column);
+
 */
 import "C"
 import (
@@ -1372,53 +1378,6 @@ func (app *GTKApp) GetTextViewCursorVisible(textViewName string) bool {
 
 
 
-// SetupTreeView initializes a GtkTreeView with data from JSON
-/*func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    // Get the tree view widget
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return fmt.Errorf("widget '%s' not found", treeViewName)
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    // Convert JSON data to C string
-    cJsonData := C.CString(jsonData)
-    defer C.free(unsafe.Pointer(cJsonData))
-
-    var columnNames **C.gchar
-    var columnCount C.gint
-
-    // Create the list store from JSON
-    store := C.gtk_list_store_new_from_json(cJsonData, &columnNames, &columnCount)
-    if store == nil {
-        return fmt.Errorf("failed to create list store from JSON")
-    }
-    defer C.g_object_unref(C.gpointer(unsafe.Pointer(store)))
-
-    // Remove existing columns
-    C.gtk_tree_view_remove_all_columns(treeView)
-
-    // Add new columns
-    names := (*[1 << 30]*C.gchar)(unsafe.Pointer(columnNames))[:columnCount:columnCount]
-    for i := 0; i < int(columnCount); i++ {
-        C.gtk_tree_view_append_column_with_title(treeView, names[i], C.gint(i))
-    }
-
-    // Free column names
-    for i := 0; names[i] != nil; i++ {
-        C.free(unsafe.Pointer(names[i]))
-    }
-    C.free(unsafe.Pointer(columnNames))
-
-    // Set the model
-    C.gtk_tree_view_set_model(treeView, (*C.GtkTreeModel)(unsafe.Pointer(store)))
-
-    return nil
-}*/
-
 
 type TableData struct {
     Columns []string          `json:"columns"`
@@ -1496,5 +1455,76 @@ func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
     runtime.KeepAlive(store)
 
     return nil
+}
+
+
+
+
+// GetTreeViewJSON obtiene los datos de un TreeView y los devuelve como JSON string
+func (app *GTKApp) GetTreeViewJSON(treeViewName string) (string, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return "", fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+
+    // Obtener información del modelo
+    var nColumns, nRows C.gint
+    C.gtk_tree_view_get_model_info(treeView, &nColumns, &nRows)
+    
+    if nColumns == 0 || nRows == 0 {
+        return "", fmt.Errorf("tree view has no data")
+    }
+
+    // Obtener nombres de columnas
+    columns := make([]string, nColumns)
+    for i := 0; i < int(nColumns); i++ {
+        // Obtener la columna del TreeView
+        treeColumn := C.gtk_tree_view_get_column(treeView, C.gint(i))
+        if treeColumn == nil {
+            columns[i] = fmt.Sprintf("Column %d", i+1)
+            continue
+        }
+        
+        // Obtener el título de la columna
+        cTitle := C.gtk_tree_view_column_get_title(treeColumn)
+        if cTitle != nil {
+            columns[i] = C.GoString(cTitle)
+        } else {
+            columns[i] = fmt.Sprintf("Column %d", i+1)
+        }
+    }
+
+    // Obtener datos de las filas
+    rows := make([]map[string]string, nRows)
+    for row := 0; row < int(nRows); row++ {
+        rowData := make(map[string]string)
+        for col := 0; col < int(nColumns); col++ {
+            cValue := C.gtk_tree_view_get_cell_value(treeView, C.gint(row), C.gint(col))
+            if cValue != nil {
+                rowData[columns[col]] = C.GoString(cValue)
+                C.g_free(C.gpointer(cValue))
+            } else {
+                rowData[columns[col]] = ""
+            }
+        }
+        rows[row] = rowData
+    }
+
+    // Crear estructura TableData y convertir a JSON
+    data := TableData{
+        Columns: columns,
+        Rows:    rows,
+    }
+
+    jsonData, err := json.Marshal(data)
+    if err != nil {
+        return "", fmt.Errorf("error marshaling to JSON: %v", err)
+    }
+
+    return string(jsonData), nil
 }
 

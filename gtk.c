@@ -457,3 +457,71 @@ void gtk_list_store_append_row(GtkListStore *store, gint n_columns, const gchar 
         gtk_list_store_set(store, &iter, i, val, -1);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Obtiene el modelo del TreeView y cuenta las filas y columnas
+void gtk_tree_view_get_model_info(GtkTreeView *tree_view, gint *n_columns, gint *n_rows) {
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    if (model) {
+        *n_columns = gtk_tree_model_get_n_columns(model);
+        *n_rows = gtk_tree_model_iter_n_children(model, NULL);
+    } else {
+        *n_columns = 0;
+        *n_rows = 0;
+    }
+}
+
+// Obtiene el valor de una celda específica
+gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint column) {
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    if (!model) return NULL;
+
+    GtkTreeIter iter;
+    if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, row)) {
+        return NULL;
+    }
+
+    GValue value = {0};
+    gtk_tree_model_get_value(model, &iter, column, &value);
+    
+    if (!G_VALUE_HOLDS_STRING(&value)) {
+        g_value_unset(&value);
+        return NULL;
+    }
+
+    const gchar *str_val = g_value_get_string(&value);
+    gchar *result = str_val ? g_strdup(str_val) : g_strdup("");
+    g_value_unset(&value);
+    
+    return result;
+}
+
+
+
+
+
+
