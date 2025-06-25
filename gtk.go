@@ -144,7 +144,10 @@ extern gboolean gtk_text_view_get_cursor_visible_wrapper(GObject *text_view);
 
 
 
-
+extern void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view);
+extern void gtk_tree_view_append_column_with_title(GtkTreeView *tree_view, const gchar *title, gint column_index);
+extern GtkListStore* gtk_list_store_new_with_columns(gint n_columns, GType *types);
+extern void gtk_list_store_append_row(GtkListStore *store, gint n_columns, const gchar **values);
 */
 import "C"
 import (
@@ -153,8 +156,11 @@ import (
 	"unsafe"
 	"fmt"
 	"strings"
+	"encoding/json"
+	"runtime"
 )
 
+    
 
 var (
     callbackMutex   sync.Mutex
@@ -1365,4 +1371,130 @@ func (app *GTKApp) GetTextViewCursorVisible(textViewName string) bool {
 
 
 
+
+// SetupTreeView initializes a GtkTreeView with data from JSON
+/*func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+
+    // Get the tree view widget
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+
+    // Convert JSON data to C string
+    cJsonData := C.CString(jsonData)
+    defer C.free(unsafe.Pointer(cJsonData))
+
+    var columnNames **C.gchar
+    var columnCount C.gint
+
+    // Create the list store from JSON
+    store := C.gtk_list_store_new_from_json(cJsonData, &columnNames, &columnCount)
+    if store == nil {
+        return fmt.Errorf("failed to create list store from JSON")
+    }
+    defer C.g_object_unref(C.gpointer(unsafe.Pointer(store)))
+
+    // Remove existing columns
+    C.gtk_tree_view_remove_all_columns(treeView)
+
+    // Add new columns
+    names := (*[1 << 30]*C.gchar)(unsafe.Pointer(columnNames))[:columnCount:columnCount]
+    for i := 0; i < int(columnCount); i++ {
+        C.gtk_tree_view_append_column_with_title(treeView, names[i], C.gint(i))
+    }
+
+    // Free column names
+    for i := 0; names[i] != nil; i++ {
+        C.free(unsafe.Pointer(names[i]))
+    }
+    C.free(unsafe.Pointer(columnNames))
+
+    // Set the model
+    C.gtk_tree_view_set_model(treeView, (*C.GtkTreeModel)(unsafe.Pointer(store)))
+
+    return nil
+}*/
+
+
+type TableData struct {
+    Columns []string          `json:"columns"`
+    Rows    []map[string]string `json:"rows"`
+}
+
+func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
+    // Parse JSON data
+    var data struct {
+        Columns []string            `json:"columns"`
+        Rows    []map[string]string `json:"rows"`
+    }
+    err := json.Unmarshal([]byte(jsonData), &data)
+    if err != nil {
+        return fmt.Errorf("error parsing JSON: %v", err)
+    }
+
+    if len(data.Columns) == 0 || len(data.Rows) == 0 {
+        return fmt.Errorf("no columns or rows in data")
+    }
+
+    // Get the tree view widget
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+
+    // Remove existing columns
+    C.gtk_tree_view_remove_all_columns(treeView)
+
+    // Create column types (all strings)
+    nColumns := len(data.Columns)
+    cTypes := make([]C.GType, nColumns)
+    for i := range cTypes {
+        cTypes[i] = C.G_TYPE_STRING
+    }
+
+    // Create list store
+    store := C.gtk_list_store_new_with_columns(C.gint(nColumns), &cTypes[0])
+    if store == nil {
+        return fmt.Errorf("failed to create list store")
+    }
+
+    // Add data rows
+    for _, row := range data.Rows {
+        // Prepare row values
+        cRow := make([]*C.gchar, nColumns)
+        for i, col := range data.Columns {
+            val := row[col]
+            // Convert to valid UTF-8 and replace invalid runes
+            cleanVal := strings.ToValidUTF8(val, "�")
+            cRow[i] = C.CString(cleanVal)
+            defer C.free(unsafe.Pointer(cRow[i]))
+        }
+
+        C.gtk_list_store_append_row(store, C.gint(nColumns), &cRow[0])
+    }
+
+    // Add columns to tree view
+    for i, col := range data.Columns {
+        cleanCol := strings.ToValidUTF8(col, "�")
+        cCol := C.CString(cleanCol)
+        defer C.free(unsafe.Pointer(cCol))
+        C.gtk_tree_view_append_column_with_title(treeView, cCol, C.gint(i))
+    }
+
+    // Set the model
+    C.gtk_tree_view_set_model(treeView, (*C.GtkTreeModel)(unsafe.Pointer(store)))
+
+    // Keep the store reference
+    runtime.KeepAlive(store)
+
+    return nil
+}
 

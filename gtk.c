@@ -328,3 +328,132 @@ gboolean gtk_text_view_get_cursor_visible_wrapper(GObject *text_view) {
 
 
 
+
+
+// Funciones para GtkTreeView
+/*void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view) {
+    GList *columns = gtk_tree_view_get_columns(tree_view);
+    GList *iter = columns;
+    
+    while (iter != NULL) {
+        gtk_tree_view_remove_column(tree_view, GTK_TREE_VIEW_COLUMN(iter->data));
+        iter = iter->next;
+    }
+    
+    g_list_free(columns);
+}
+
+void gtk_tree_view_append_column_with_title(GtkTreeView *tree_view, const gchar *title, gint column_index) {
+    GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+    GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes(
+        title, renderer, "text", column_index, NULL);
+    gtk_tree_view_append_column(tree_view, column);
+}
+
+GtkListStore* gtk_list_store_new_from_json(const gchar *json_data, gchar ***column_names, gint *column_count) {
+    JsonParser *parser = json_parser_new();
+    JsonNode *root = NULL;
+    GError *error = NULL;
+    
+    if (!json_parser_load_from_data(parser, json_data, -1, &error)) {
+        g_printerr("Error parsing JSON: %s\n", error->message);
+        g_error_free(error);
+        g_object_unref(parser);
+        return NULL;
+    }
+    
+    root = json_parser_get_root(parser);
+    if (!JSON_NODE_HOLDS_ARRAY(root)) {
+        g_printerr("JSON root is not an array\n");
+        g_object_unref(parser);
+        return NULL;
+    }
+    
+    JsonArray *array = json_node_get_array(root);
+    guint array_length = json_array_get_length(array);
+    
+    if (array_length == 0) {
+        g_object_unref(parser);
+        return NULL;
+    }
+    
+    // Get column names from first object
+    JsonObject *first_obj = json_array_get_object_element(array, 0);
+    GList *members = json_object_get_members(first_obj);
+    *column_count = g_list_length(members);
+    *column_names = g_new(gchar*, *column_count + 1);
+    
+    GType *types = g_new(GType, *column_count);
+    gint i = 0;
+    
+    for (GList *iter = members; iter != NULL; iter = iter->next) {
+        (*column_names)[i] = g_strdup(iter->data);
+        types[i] = G_TYPE_STRING; // We'll assume all columns are strings for simplicity
+        i++;
+    }
+    (*column_names)[i] = NULL;
+    
+    g_list_free(members);
+    
+    // Create the list store
+    GtkListStore *store = gtk_list_store_newv(*column_count, types);
+    g_free(types);
+    
+    // Fill the store with data
+    for (guint j = 0; j < array_length; j++) {
+        JsonObject *obj = json_array_get_object_element(array, j);
+        GtkTreeIter iter;
+        gtk_list_store_append(store, &iter);
+        
+        for (i = 0; i < *column_count; i++) {
+            const gchar *value = json_object_get_string_member(obj, (*column_names)[i]);
+            gtk_list_store_set(store, &iter, i, value ? value : "", -1);
+        }
+    }
+    
+    g_object_unref(parser);
+    return store;
+}*/
+
+
+
+
+
+
+
+
+
+
+// TreeView functions
+void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view) {
+    GList *columns = gtk_tree_view_get_columns(tree_view);
+    GList *iter = columns;
+    
+    while (iter != NULL) {
+        gtk_tree_view_remove_column(tree_view, GTK_TREE_VIEW_COLUMN(iter->data));
+        iter = iter->next;
+    }
+    
+    g_list_free(columns);
+}
+
+void gtk_tree_view_append_column_with_title(GtkTreeView *tree_view, const gchar *title, gint column_index) {
+    GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+    GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes(
+        title, renderer, "text", column_index, NULL);
+    gtk_tree_view_append_column(tree_view, column);
+}
+
+GtkListStore* gtk_list_store_new_with_columns(gint n_columns, GType *types) {
+    return gtk_list_store_newv(n_columns, types);
+}
+
+void gtk_list_store_append_row(GtkListStore *store, gint n_columns, const gchar **values) {
+    GtkTreeIter iter;
+    gtk_list_store_append(store, &iter);
+    
+    for (gint i = 0; i < n_columns; i++) {
+        const gchar *val = values[i] ? values[i] : "";
+        gtk_list_store_set(store, &iter, i, val, -1);
+    }
+}
