@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
+#include <gtk/gtkspinner.h> 
 #include <stdlib.h>
+
 
 extern void goCallbackProxy(gpointer data);
 
@@ -145,6 +147,180 @@ void gtk_entry_set_visibility_wrapper(GObject *entry, gboolean visible) {
 gboolean gtk_entry_get_visibility_wrapper(GObject *entry) {
     return gtk_entry_get_visibility(GTK_ENTRY(entry));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+// Funciones wrapper para GtkComboBoxText
+void gtk_combo_box_text_append_wrapper(GObject *combo, const gchar *id, const gchar *text) {
+    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combo), id, text);
+}
+
+void gtk_combo_box_text_prepend_wrapper(GObject *combo, const gchar *id, const gchar *text) {
+    gtk_combo_box_text_prepend(GTK_COMBO_BOX_TEXT(combo), id, text);
+}
+
+void gtk_combo_box_text_insert_wrapper(GObject *combo, gint position, const gchar *id, const gchar *text) {
+    gtk_combo_box_text_insert(GTK_COMBO_BOX_TEXT(combo), position, id, text);
+}
+
+void gtk_combo_box_text_remove_all_wrapper(GObject *combo) {
+    gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(combo));
+}
+
+void gtk_combo_box_set_active_wrapper(GObject *combo, gint index) {
+    gtk_combo_box_set_active(GTK_COMBO_BOX(combo), index);
+}
+
+gint gtk_combo_box_get_active_wrapper(GObject *combo) {
+    return gtk_combo_box_get_active(GTK_COMBO_BOX(combo));
+}
+
+const gchar* gtk_combo_box_text_get_active_text_wrapper(GObject *combo) {
+    return gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Implementación para GtkSwitch
+void gtk_switch_set_active_wrapper(GObject *sw, gboolean active) {
+    gtk_switch_set_active(GTK_SWITCH(sw), active);
+}
+
+gboolean gtk_switch_get_active_wrapper(GObject *sw) {
+    return gtk_switch_get_active(GTK_SWITCH(sw));
+}
+
+void go_switch_state_set_bridge(GtkWidget *widget, gboolean state, gpointer data) {
+    // Llama a la función Go pasando el estado como parámetro
+    goCallbackProxy(data);
+}
+
+gboolean isswitch(GObject *object) {
+    return GTK_IS_SWITCH(object);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Implementación corregida para GtkScale
+void gtk_scale_set_value_wrapper(GObject *scale, gdouble value) {
+    gtk_range_set_value(GTK_RANGE(scale), value);
+}
+
+gdouble gtk_scale_get_value_wrapper(GObject *scale) {
+    return gtk_range_get_value(GTK_RANGE(scale));
+}
+
+void gtk_scale_set_range_wrapper(GObject *scale, gdouble min, gdouble max) {
+    gtk_range_set_range(GTK_RANGE(scale), min, max);
+}
+
+void gtk_scale_set_digits_wrapper(GObject *scale, gint digits) {
+    gtk_scale_set_digits(GTK_SCALE(scale), digits);
+}
+
+void gtk_scale_set_draw_value_wrapper(GObject *scale, gboolean draw_value) {
+    gtk_scale_set_draw_value(GTK_SCALE(scale), draw_value);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Funciones wrapper para GtkTextView
+void gtk_text_view_set_text_wrapper(GObject *text_view, const gchar *text) {
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+    gtk_text_buffer_set_text(buffer, text, -1);
+}
+
+gchar* gtk_text_view_get_text_wrapper(GObject *text_view) {
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+    return gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+}
+
+void gtk_text_view_set_editable_wrapper(GObject *text_view, gboolean editable) {
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(text_view), editable);
+}
+
+gboolean gtk_text_view_get_editable_wrapper(GObject *text_view) {
+    return gtk_text_view_get_editable(GTK_TEXT_VIEW(text_view));
+}
+
+void gtk_text_view_set_wrap_mode_wrapper(GObject *text_view, GtkWrapMode mode) {
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text_view), mode);
+}
+
+GtkWrapMode gtk_text_view_get_wrap_mode_wrapper(GObject *text_view) {
+    return gtk_text_view_get_wrap_mode(GTK_TEXT_VIEW(text_view));
+}
+
+void gtk_text_view_set_cursor_visible_wrapper(GObject *text_view, gboolean visible) {
+    gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view), visible);
+}
+
+gboolean gtk_text_view_get_cursor_visible_wrapper(GObject *text_view) {
+    return gtk_text_view_get_cursor_visible(GTK_TEXT_VIEW(text_view));
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
