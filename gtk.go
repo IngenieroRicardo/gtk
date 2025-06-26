@@ -172,6 +172,21 @@ extern gchar* gtk_tree_view_get_row_json(GtkTreeView *tree_view, gint row);
 extern void gtk_tree_view_add_empty_row(GtkTreeView *tree_view);
 extern gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view);
 
+
+
+
+
+
+
+
+
+
+
+
+
+extern void gtk_statusbar_set_text_wrapper(GObject *statusbar, const gchar *text);
+extern const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar);
+
 */
 import "C"
 import (
@@ -1751,4 +1766,78 @@ func (app *GTKApp) RemoveSelectedRow(treeViewName string) (bool, error) {
 
     removed := C.gtk_tree_view_remove_selected_row(treeView)
     return int(removed)==1, nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// SetStatusBar establece el texto en la barra de estado
+func (app *GTKApp) SetStatusBar(statusbarName, text string) {
+    cStatusbarName := C.CString(statusbarName)
+    defer C.free(unsafe.Pointer(cStatusbarName))
+
+    cText := C.CString(text)
+    defer C.free(unsafe.Pointer(cText))
+
+    widget := C.gtk_builder_get_object(app.builder, cStatusbarName)
+    if widget != nil {
+        C.gtk_statusbar_set_text_wrapper((*C.GObject)(widget), cText)
+    }
+}
+
+// GetStatusBar obtiene el texto actual de la barra de estado
+func (app *GTKApp) GetStatusBar(statusbarName string) string {
+    cStatusbarName := C.CString(statusbarName)
+    defer C.free(unsafe.Pointer(cStatusbarName))
+
+    widget := C.gtk_builder_get_object(app.builder, cStatusbarName)
+    if widget != nil {
+        cText := C.gtk_statusbar_get_text_wrapper((*C.GObject)(widget))
+        if cText != nil {
+            return C.GoString(cText)
+        }
+    }
+    return ""
 }

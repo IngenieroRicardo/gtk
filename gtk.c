@@ -577,3 +577,86 @@ gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view) {
     }
     return FALSE;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Versión corregida para Statusbar
+void gtk_statusbar_set_text_wrapper(GObject *statusbar, const gchar *text) {
+    if (!GTK_IS_STATUSBAR(statusbar)) return;
+    
+    // Usamos un context ID fijo para simplificar
+    static guint context_id = 0;
+    if (context_id == 0) {
+        context_id = gtk_statusbar_get_context_id(GTK_STATUSBAR(statusbar), "default");
+    }
+    
+    // Limpiar mensajes previos y mostrar el nuevo
+    gtk_statusbar_remove_all(GTK_STATUSBAR(statusbar), context_id);
+    gtk_statusbar_push(GTK_STATUSBAR(statusbar), context_id, text);
+}
+
+// Implementación alternativa para obtener el texto actual
+const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar) {
+    if (!GTK_IS_STATUSBAR(statusbar)) return NULL;
+    
+    // Obtenemos el área de mensajes (GtkBox)
+    GtkWidget *message_area = gtk_statusbar_get_message_area(GTK_STATUSBAR(statusbar));
+    if (!message_area || !GTK_IS_CONTAINER(message_area)) return NULL;
+    
+    // Buscamos el último GtkLabel hijo
+    GList *children = gtk_container_get_children(GTK_CONTAINER(message_area));
+    GList *last = g_list_last(children);
+    
+    if (last && GTK_IS_LABEL(last->data)) {
+        return gtk_label_get_text(GTK_LABEL(last->data));
+    }
+    
+    return NULL;
+}
