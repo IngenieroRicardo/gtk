@@ -144,28 +144,29 @@ extern gboolean gtk_text_view_get_cursor_visible_wrapper(GObject *text_view);
 
 
 
+
+
+
+// ------------------------------
+
+
+
+
 extern void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view);
 extern void gtk_tree_view_append_column_with_title(GtkTreeView *tree_view, const gchar *title, gint column_index);
 extern GtkListStore* gtk_list_store_new_with_columns(gint n_columns, GType *types);
 extern void gtk_list_store_append_row(GtkListStore *store, gint n_columns, const gchar **values);
 
-
-
 extern void gtk_tree_view_get_model_info(GtkTreeView *tree_view, gint *n_columns, gint *n_rows);
 extern gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint column);
 
-extern void gtk_tree_view_set_editable(GtkTreeView *tree_view, gboolean editable);
-extern void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *value);
 
-extern gboolean is_cell_renderer_text(GtkCellRenderer *renderer);
-typedef struct {
-    gpointer callback_id;
-    gchar *path;
-    gchar *new_text;
-} EditedCallbackData;
+extern void gtk_tree_view_set_column_editable(GtkTreeView *tree_view, gint column_index, gboolean editable);
+extern void gtk_tree_view_connect_edited_signal(GtkTreeView *tree_view, gint column_index, const gchar *id);
+extern void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *new_value);
 
-extern void go_tree_view_edited_bridge(GtkCellRendererText *renderer, gchar *path, gchar *new_text, gpointer data);
-extern void goCallbackProxyWithArgs(EditedCallbackData *data);
+
+
 
 
 
@@ -179,36 +180,67 @@ import (
 	"strings"
 	"encoding/json"
 	"runtime"
+	"strconv"
+)
+
+    
+
+var (
+    callbackMutex   sync.Mutex
+    callbacks       = make(map[string]func())
+    switchCallbacks = make(map[string]func(bool))
+    globalBuilder   *C.GtkBuilder
 )
 
 var (
-    callbackMutex     sync.Mutex
-    callbacks       = make(map[string]func())
-    simpleCallbacks   = make(map[string]func())               // Para callbacks sin argumentos
-    editedCallbacks   = make(map[string]func(string, string)) // Para callbacks de edición
-    globalBuilder     *C.GtkBuilder
-    switchCallbacks = make(map[string]func(bool))
+    editedCallbacks = make(map[string]func(row, col int, newValue string)) // Nuevo mapa para callbacks de edición
 )
-
 
 //export goCallbackProxy
 func goCallbackProxy(data unsafe.Pointer) {
-    id := C.GoString((*C.char)(data))
+
+	fullData := C.GoString((*C.char)(data))
     
-    callbackMutex.Lock()
-    defer callbackMutex.Unlock()
-    
-    // Verificar callbacks simples
-    if cb, ok := simpleCallbacks[id]; ok {
-        cb()
+    parts := strings.SplitN(fullData, "::", 3) // Cambiado a 3 partes
+    if len(parts) == 3 {
+        id := parts[0]
+        row, _ := strconv.Atoi(parts[1])
+        value := parts[2]
+        
+        callbackMutex.Lock()
+        if cb, ok := editedCallbacks[id]; ok {
+            cb(row, 0, value) // El índice de columna ya se maneja en el callback
+        }
+        callbackMutex.Unlock()
         return
     }
+
     
-    // Verificar callbacks de edición
-    if ecb, ok := editedCallbacks[id]; ok {
-        // Obtener los datos de edición (esto es un placeholder)
-        // En una implementación real, pasaríamos path y newText desde C
-        ecb("0", "edited_value")
+
+
+    callbackMutex.Lock()
+    if cb, ok := callbacks[fullData]; ok {
+        cb()
+    }
+    callbackMutex.Unlock()
+    
+	id := C.GoString((*C.char)(data))
+
+
+
+    if scb, ok := switchCallbacks[id]; ok {
+        parts := strings.Split(id, "::")
+        if len(parts) > 0 {
+            switchName := parts[0]
+            cSwitchName := C.CString(switchName)
+            defer C.free(unsafe.Pointer(cSwitchName))
+            
+            widget := C.gtk_builder_get_object(globalBuilder, cSwitchName)
+            if widget != nil && C.isswitch(widget)!= 0 {
+                state := C.gtk_switch_get_active((*C.GtkSwitch)(unsafe.Pointer(widget)))
+                scb(state != 0)
+            }
+        }
     }
 }
     
@@ -260,7 +292,7 @@ func (app *GTKApp) ConnectSignal(widgetName, signal string, callback func()) {
     cId := C.CString(id)
     
     callbackMutex.Lock()
-    simpleCallbacks[id] = callback
+    callbacks[id] = callback
     callbackMutex.Unlock()
 
     C.g_signal_connect_data(
@@ -1385,6 +1417,22 @@ func (app *GTKApp) GetTextViewCursorVisible(textViewName string) bool {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 type TableData struct {
     Columns []string          `json:"columns"`
     Rows    []map[string]string `json:"rows"`
@@ -1460,7 +1508,6 @@ func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
     // Keep the store reference
     runtime.KeepAlive(store)
 
-    app.SetTreeViewEditable(treeViewName, true)
     return nil
 }
 
@@ -1543,8 +1590,27 @@ func (app *GTKApp) GetTreeViewJSON(treeViewName string) (string, error) {
 
 
 
-// SetTreeViewEditable hace que todo el TreeView sea editable o no editable
-func (app *GTKApp) SetTreeViewEditable(treeViewName string, editable bool) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ... (código existente)
+
+// SetColumnEditable hace editable una columna específica del TreeView
+func (app *GTKApp) SetColumnEditable(treeViewName string, columnIndex int, editable bool) {
     cTreeViewName := C.CString(treeViewName)
     defer C.free(unsafe.Pointer(cTreeViewName))
 
@@ -1552,85 +1618,58 @@ func (app *GTKApp) SetTreeViewEditable(treeViewName string, editable bool) {
     if widget == nil {
         return
     }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
 
-    var cEditable C.gboolean
-    if editable {
-        cEditable = C.TRUE
-    } else {
-        cEditable = C.FALSE
-    }
-
-    C.gtk_tree_view_set_editable((*C.GtkTreeView)(unsafe.Pointer(widget)), cEditable)
+    C.gtk_tree_view_set_column_editable(treeView, C.gint(columnIndex), C.gboolean(boolToGboolean(editable)))
 }
 
-// SetTreeViewCell establece el valor de una celda específica
-func (app *GTKApp) SetTreeViewCell(treeViewName string, row, column int, value string) {
+
+func (app *GTKApp) ConnectEditedSignal(treeViewName string, columnIndex int, callback func(row, col int, newValue string)) {
     cTreeViewName := C.CString(treeViewName)
     defer C.free(unsafe.Pointer(cTreeViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+
+    // ID más simple que incluye solo el nombre del treeview
+    id := treeViewName
+    cId := C.CString(id)
+    defer C.free(unsafe.Pointer(cId))
+
+    callbackMutex.Lock()
+    // Almacenamos el índice de columna en el callback
+    editedCallbacks[id] = func(row, _ int, newValue string) {
+        callback(row, columnIndex, newValue)
+    }
+    callbackMutex.Unlock()
+
+    C.gtk_tree_view_connect_edited_signal(treeView, C.gint(columnIndex), cId)
+}
+
+// SetCellValue actualiza el valor de una celda específica
+func (app *GTKApp) SetCellValue(treeViewName string, row, column int, value string) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
 
     cValue := C.CString(value)
     defer C.free(unsafe.Pointer(cValue))
 
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return
-    }
-
-    C.gtk_tree_view_set_cell_value(
-        (*C.GtkTreeView)(unsafe.Pointer(widget)),
-        C.gint(row),
-        C.gint(column),
-        cValue,
-    )
+    C.gtk_tree_view_set_cell_value(treeView, C.gint(row), C.gint(column), cValue)
 }
 
-// ConnectTreeViewEdited conecta una señal para manejar ediciones en cualquier celda
-func (app *GTKApp) ConnectTreeViewEdited(treeViewName string, callback func(path, newText string)) {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return
+// Helper function to convert Go bool to C gboolean
+func boolToGboolean(b bool) C.gboolean {
+    if b {
+        return C.gboolean(1)
     }
-
-    app.SetTreeViewEditable(treeViewName, true)
-
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-    nColumns := C.gtk_tree_view_get_n_columns(treeView)
-    
-    for i := 0; i < int(nColumns); i++ {
-        column := C.gtk_tree_view_get_column(treeView, C.gint(i))
-        if column == nil {
-            continue
-        }
-
-        renderers := C.gtk_cell_layout_get_cells((*C.GtkCellLayout)(unsafe.Pointer(column)))
-        if renderers == nil {
-            continue
-        }
-
-        for r := renderers; r != nil; r = r.next {
-            renderer := (*C.GtkCellRenderer)(r.data)
-            if C.is_cell_renderer_text(renderer) != 0 {
-                id := fmt.Sprintf("%s::edited::%d", treeViewName, i)
-                cId := C.CString(id)
-                
-                callbackMutex.Lock()
-                editedCallbacks[id] = callback
-                callbackMutex.Unlock()
-
-                C.g_signal_connect_data(
-                    C.gpointer(renderer),
-                    C.CString("edited"),
-                    C.GCallback(C.go_tree_view_edited_bridge),
-                    C.gpointer(unsafe.Pointer(cId)),
-                    C.GClosureNotify(C.free),
-                    0,
-                )
-            }
-        }
-        C.g_list_free(renderers)
-    }
+    return C.gboolean(0)
 }
-

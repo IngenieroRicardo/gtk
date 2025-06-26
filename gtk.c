@@ -5,9 +5,21 @@
 
 extern void goCallbackProxy(gpointer data);
 
+typedef struct {
+    gint row;
+    gint column;
+    gchar *id;
+} EditedData;
+
+
 void go_callback_bridge(GtkWidget *widget, gpointer data) {
     goCallbackProxy(data);
 }
+
+gboolean isswitch(GObject *object) {
+    return GTK_IS_SWITCH(object);
+}
+
 
 // Funciones wrapper para GtkEntry
 void gtk_entry_set_text_wrapper(GObject *entry, const gchar *text) {
@@ -218,9 +230,6 @@ void go_switch_state_set_bridge(GtkWidget *widget, gboolean state, gpointer data
     goCallbackProxy(data);
 }
 
-gboolean isswitch(GObject *object) {
-    return GTK_IS_SWITCH(object);
-}
 
 
 
@@ -328,102 +337,6 @@ gboolean gtk_text_view_get_cursor_visible_wrapper(GObject *text_view) {
 
 
 
-
-
-// Funciones para GtkTreeView
-/*void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view) {
-    GList *columns = gtk_tree_view_get_columns(tree_view);
-    GList *iter = columns;
-    
-    while (iter != NULL) {
-        gtk_tree_view_remove_column(tree_view, GTK_TREE_VIEW_COLUMN(iter->data));
-        iter = iter->next;
-    }
-    
-    g_list_free(columns);
-}
-
-void gtk_tree_view_append_column_with_title(GtkTreeView *tree_view, const gchar *title, gint column_index) {
-    GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
-    GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes(
-        title, renderer, "text", column_index, NULL);
-    gtk_tree_view_append_column(tree_view, column);
-}
-
-GtkListStore* gtk_list_store_new_from_json(const gchar *json_data, gchar ***column_names, gint *column_count) {
-    JsonParser *parser = json_parser_new();
-    JsonNode *root = NULL;
-    GError *error = NULL;
-    
-    if (!json_parser_load_from_data(parser, json_data, -1, &error)) {
-        g_printerr("Error parsing JSON: %s\n", error->message);
-        g_error_free(error);
-        g_object_unref(parser);
-        return NULL;
-    }
-    
-    root = json_parser_get_root(parser);
-    if (!JSON_NODE_HOLDS_ARRAY(root)) {
-        g_printerr("JSON root is not an array\n");
-        g_object_unref(parser);
-        return NULL;
-    }
-    
-    JsonArray *array = json_node_get_array(root);
-    guint array_length = json_array_get_length(array);
-    
-    if (array_length == 0) {
-        g_object_unref(parser);
-        return NULL;
-    }
-    
-    // Get column names from first object
-    JsonObject *first_obj = json_array_get_object_element(array, 0);
-    GList *members = json_object_get_members(first_obj);
-    *column_count = g_list_length(members);
-    *column_names = g_new(gchar*, *column_count + 1);
-    
-    GType *types = g_new(GType, *column_count);
-    gint i = 0;
-    
-    for (GList *iter = members; iter != NULL; iter = iter->next) {
-        (*column_names)[i] = g_strdup(iter->data);
-        types[i] = G_TYPE_STRING; // We'll assume all columns are strings for simplicity
-        i++;
-    }
-    (*column_names)[i] = NULL;
-    
-    g_list_free(members);
-    
-    // Create the list store
-    GtkListStore *store = gtk_list_store_newv(*column_count, types);
-    g_free(types);
-    
-    // Fill the store with data
-    for (guint j = 0; j < array_length; j++) {
-        JsonObject *obj = json_array_get_object_element(array, j);
-        GtkTreeIter iter;
-        gtk_list_store_append(store, &iter);
-        
-        for (i = 0; i < *column_count; i++) {
-            const gchar *value = json_object_get_string_member(obj, (*column_names)[i]);
-            gtk_list_store_set(store, &iter, i, value ? value : "", -1);
-        }
-    }
-    
-    g_object_unref(parser);
-    return store;
-}*/
-
-
-
-
-
-
-
-
-
-
 // TreeView functions
 void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view) {
     GList *columns = gtk_tree_view_get_columns(tree_view);
@@ -457,31 +370,6 @@ void gtk_list_store_append_row(GtkListStore *store, gint n_columns, const gchar 
         gtk_list_store_set(store, &iter, i, val, -1);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Obtiene el modelo del TreeView y cuenta las filas y columnas
 void gtk_tree_view_get_model_info(GtkTreeView *tree_view, gint *n_columns, gint *n_rows) {
@@ -521,68 +409,89 @@ gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint colum
 }
 
 
-
-
-// Hace editable todo el TreeView (todas las columnas)
-void gtk_tree_view_set_editable(GtkTreeView *tree_view, gboolean editable) {
-    gint n_columns = gtk_tree_view_get_n_columns(tree_view);
-    for (gint i = 0; i < n_columns; i++) {
-        GtkTreeViewColumn *column = gtk_tree_view_get_column(tree_view, i);
-        if (column) {
-            GList *renderers = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(column));
-            for (GList *r = renderers; r != NULL; r = r->next) {
-                if (GTK_IS_CELL_RENDERER_TEXT(r->data)) {
-                    g_object_set(G_OBJECT(r->data), 
-                               "editable", editable, 
-                               NULL);
-                }
-            }
-            g_list_free(renderers);
-        }
+// Callback para la señal "edited"
+void on_cell_edited(GtkCellRendererText *renderer, gchar *path, gchar *new_text, gpointer user_data) {
+    gchar *id = (gchar *)user_data;
+    GtkTreeView *tree_view = GTK_TREE_VIEW(g_object_get_data(G_OBJECT(renderer), "tree-view"));
+    gint column = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(renderer), "column-index"));
+    
+    // Actualizar el modelo
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    GtkTreeIter iter;
+    
+    if (gtk_tree_model_get_iter_from_string(model, &iter, path)) {
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter, column, new_text, -1);
     }
+    
+    // Notificar a Go
+    gint row = atoi(path);
+    gchar *full_data = g_strdup_printf("%s::%d::%s", id, row, new_text); // Cambiado el formato
+    goCallbackProxy(full_data);
+    g_free(full_data);
 }
 
-// Establece el valor de una celda específica
-void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *value) {
+// Función para hacer editable una columna específica
+void gtk_tree_view_set_column_editable(GtkTreeView *tree_view, gint column_index, gboolean editable) {
+    GtkTreeViewColumn *column = gtk_tree_view_get_column(tree_view, column_index);
+    if (column == NULL) return;
+    
+    GList *renderers = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(column));
+    if (renderers == NULL) return;
+    
+    GtkCellRenderer *renderer = GTK_CELL_RENDERER(renderers->data);
+    g_object_set(renderer, "editable", editable, NULL);
+    
+    g_list_free(renderers);
+}
+
+// Función para conectar la señal de edición
+void gtk_tree_view_connect_edited_signal(GtkTreeView *tree_view, gint column_index, const gchar *id) {
+    GtkTreeViewColumn *column = gtk_tree_view_get_column(tree_view, column_index);
+    if (column == NULL) return;
+    
+    GList *renderers = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(column));
+    if (renderers == NULL) return;
+    
+    GtkCellRendererText *renderer = GTK_CELL_RENDERER_TEXT(renderers->data);
+    
+    // Almacenar referencias necesarias en el renderer
+    g_object_set_data(G_OBJECT(renderer), "column-index", GINT_TO_POINTER(column_index));
+    g_object_set_data(G_OBJECT(renderer), "tree-view", tree_view);
+
+    // Pasar el ID como user_data
+    g_signal_connect(renderer, "edited", G_CALLBACK(on_cell_edited), g_strdup(id));
+    
+    g_list_free(renderers);
+}
+
+// Función para actualizar un valor en el modelo
+void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *new_value) {
     GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
-    if (!model || !GTK_IS_LIST_STORE(model)) return;
+    if (!model) return;
 
     GtkTreeIter iter;
-    if (gtk_tree_model_iter_nth_child(model, &iter, NULL, row)) {
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter, column, value, -1);
+    if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, row)) {
+        return;
     }
+
+    gtk_list_store_set(GTK_LIST_STORE(model), &iter, column, new_value, -1);
 }
 
 
-// Función para verificar si un renderer es de tipo texto
-gboolean is_cell_renderer_text(GtkCellRenderer *renderer) {
-    return GTK_IS_CELL_RENDERER_TEXT(renderer);
-}
 
-typedef struct {
-    gpointer callback_id;
-    gchar *path;
-    gchar *new_text;
-} EditedCallbackData;
 
-void goCallbackProxyWithArgs(EditedCallbackData *data) {
-    goCallbackProxy(data->callback_id);
-    // Aquí podrías también enviar path y new_text a Go si fuera necesario
-}
 
-void go_tree_view_edited_bridge(GtkCellRendererText *renderer, 
-                              gchar *path, 
-                              gchar *new_text, 
-                              gpointer data) {
-    EditedCallbackData *cb_data = g_new(EditedCallbackData, 1);
-    cb_data->callback_id = data;
-    cb_data->path = g_strdup(path);
-    cb_data->new_text = g_strdup(new_text);
-    
-    goCallbackProxyWithArgs(cb_data);
-    
-    g_free(cb_data->path);
-    g_free(cb_data->new_text);
-    g_free(cb_data);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
