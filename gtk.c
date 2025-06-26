@@ -410,6 +410,7 @@ gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint colum
 
 
 // Callback para la señal "edited"
+// Modificar la función on_cell_edited
 void on_cell_edited(GtkCellRendererText *renderer, gchar *path, gchar *new_text, gpointer user_data) {
     gchar *id = (gchar *)user_data;
     GtkTreeView *tree_view = GTK_TREE_VIEW(g_object_get_data(G_OBJECT(renderer), "tree-view"));
@@ -423,12 +424,13 @@ void on_cell_edited(GtkCellRendererText *renderer, gchar *path, gchar *new_text,
         gtk_list_store_set(GTK_LIST_STORE(model), &iter, column, new_text, -1);
     }
     
-    // Notificar a Go
+    // Notificar a Go - ahora incluye la columna
     gint row = atoi(path);
-    gchar *full_data = g_strdup_printf("%s::%d::%s", id, row, new_text); // Cambiado el formato
+    gchar *full_data = g_strdup_printf("%s::%d::%d::%s", id, row, column, new_text);
     goCallbackProxy(full_data);
     g_free(full_data);
 }
+
 
 // Función para hacer editable una columna específica
 void gtk_tree_view_set_column_editable(GtkTreeView *tree_view, gint column_index, gboolean editable) {
@@ -495,3 +497,83 @@ void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column,
 
 
 
+// Obtiene una fila completa como JSON
+gchar* gtk_tree_view_get_row_json(GtkTreeView *tree_view, gint row) {
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    if (!model) return NULL;
+
+    gint n_columns = gtk_tree_model_get_n_columns(model);
+    if (n_columns == 0) return NULL;
+
+    GtkTreeIter iter;
+    if (!gtk_tree_model_iter_nth_child(model, &iter, NULL, row)) {
+        return NULL;
+    }
+
+    GString *json = g_string_new("{");
+    gboolean first = TRUE;
+
+    for (gint col = 0; col < n_columns; col++) {
+        // Obtener nombre de la columna
+        GtkTreeViewColumn *column = gtk_tree_view_get_column(tree_view, col);
+        const gchar *col_name = column ? gtk_tree_view_column_get_title(column) : NULL;
+        if (!col_name) {
+            col_name = g_strdup_printf("Column%d", col+1);
+        }
+
+        // Obtener valor de la celda
+        GValue value = {0};
+        gtk_tree_model_get_value(model, &iter, col, &value);
+        
+        const gchar *str_val = NULL;
+        if (G_VALUE_HOLDS_STRING(&value)) {
+            str_val = g_value_get_string(&value);
+        } else {
+            str_val = "";
+        }
+
+        // Agregar al JSON
+        if (!first) {
+            g_string_append(json, ", ");
+        }
+        g_string_append_printf(json, "\"%s\": \"%s\"", col_name, str_val ? str_val : "");
+        
+        g_value_unset(&value);
+        first = FALSE;
+    }
+
+    g_string_append(json, "}");
+    return g_string_free(json, FALSE);
+}
+
+
+// Agregar esta función en tabla.c
+void gtk_tree_view_add_empty_row(GtkTreeView *tree_view) {
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    if (!model) return;
+
+    GtkListStore *store = GTK_LIST_STORE(model);
+    GtkTreeIter iter;
+    
+    gtk_list_store_append(store, &iter);
+    
+    // Inicializar todas las celdas como vacías
+    gint n_columns = gtk_tree_model_get_n_columns(model);
+    for (gint i = 0; i < n_columns; i++) {
+        gtk_list_store_set(store, &iter, i, "", -1);
+    }
+}
+
+
+// Agregar esta función en tabla.c
+gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view) {
+    GtkTreeSelection *selection = gtk_tree_view_get_selection(tree_view);
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    
+    if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+        return TRUE;
+    }
+    return FALSE;
+}

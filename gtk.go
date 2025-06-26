@@ -164,11 +164,13 @@ extern gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gin
 extern void gtk_tree_view_set_column_editable(GtkTreeView *tree_view, gint column_index, gboolean editable);
 extern void gtk_tree_view_connect_edited_signal(GtkTreeView *tree_view, gint column_index, const gchar *id);
 extern void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *new_value);
+extern gchar* gtk_tree_view_get_row_json(GtkTreeView *tree_view, gint row);
 
 
 
 
-
+extern void gtk_tree_view_add_empty_row(GtkTreeView *tree_view);
+extern gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view);
 
 */
 import "C"
@@ -201,15 +203,16 @@ func goCallbackProxy(data unsafe.Pointer) {
 
 	fullData := C.GoString((*C.char)(data))
     
-    parts := strings.SplitN(fullData, "::", 3) // Cambiado a 3 partes
-    if len(parts) == 3 {
+    parts := strings.SplitN(fullData, "::", 4)
+    if len(parts) == 4 {
         id := parts[0]
         row, _ := strconv.Atoi(parts[1])
-        value := parts[2]
+        col, _ := strconv.Atoi(parts[2])
+        value := parts[3]
         
         callbackMutex.Lock()
         if cb, ok := editedCallbacks[id]; ok {
-            cb(row, 0, value) // El índice de columna ya se maneja en el callback
+            cb(row, col, value)
         }
         callbackMutex.Unlock()
         return
@@ -1624,7 +1627,7 @@ func (app *GTKApp) SetColumnEditable(treeViewName string, columnIndex int, edita
 }
 
 
-func (app *GTKApp) ConnectEditedSignal(treeViewName string, columnIndex int, callback func(row, col int, newValue string)) {
+func (app *GTKApp) ConnectEditedSignal(treeViewName string, callback func(row, col int, newValue string)) {
     cTreeViewName := C.CString(treeViewName)
     defer C.free(unsafe.Pointer(cTreeViewName))
 
@@ -1634,19 +1637,26 @@ func (app *GTKApp) ConnectEditedSignal(treeViewName string, columnIndex int, cal
     }
     treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
 
-    // ID más simple que incluye solo el nombre del treeview
+    // Obtener el número de columnas del modelo directamente
+    model := C.gtk_tree_view_get_model(treeView)
+    if model == nil {
+        return
+    }
+    nColumns := C.gtk_tree_model_get_n_columns(model)
+
+    // ID basado en el nombre del treeview
     id := treeViewName
     cId := C.CString(id)
     defer C.free(unsafe.Pointer(cId))
 
     callbackMutex.Lock()
-    // Almacenamos el índice de columna en el callback
-    editedCallbacks[id] = func(row, _ int, newValue string) {
-        callback(row, columnIndex, newValue)
-    }
+    editedCallbacks[id] = callback
     callbackMutex.Unlock()
 
-    C.gtk_tree_view_connect_edited_signal(treeView, C.gint(columnIndex), cId)
+    // Conectar la señal para todas las columnas editables
+    for i := 0; i < int(nColumns); i++ {
+        C.gtk_tree_view_connect_edited_signal(treeView, C.gint(i), cId)
+    }
 }
 
 // SetCellValue actualiza el valor de una celda específica
@@ -1672,4 +1682,73 @@ func boolToGboolean(b bool) C.gboolean {
         return C.gboolean(1)
     }
     return C.gboolean(0)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// GetRow obtiene una fila específica del TreeView como string JSON
+func (app *GTKApp) GetRow(treeViewName string, row int) (string, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return "", fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+
+    cJson := C.gtk_tree_view_get_row_json(treeView, C.gint(row))
+    if cJson == nil {
+        return "", fmt.Errorf("failed to get row %d", row)
+    }
+    defer C.g_free(C.gpointer(cJson))
+
+    return C.GoString(cJson), nil
+}
+
+// Agregar esta función en tabla.go
+func (app *GTKApp) AddEmptyRow(treeViewName string) error {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+
+    C.gtk_tree_view_add_empty_row(treeView)
+    return nil
+}
+
+// Agregar esta función en tabla.go
+func (app *GTKApp) RemoveSelectedRow(treeViewName string) (bool, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return false, fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+
+    removed := C.gtk_tree_view_remove_selected_row(treeView)
+    return int(removed)==1, nil
 }
