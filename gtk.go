@@ -197,6 +197,8 @@ extern const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar);
 
 extern gchar* gtk_file_chooser_get_filename_wrapper(GObject *chooser);
 extern void gtk_file_chooser_set_current_folder_wrapper(GObject *chooser, const gchar *folder);
+
+extern void connect_popover_escape_handler(GObject *popover);
 */
 import "C"
 import (
@@ -1899,5 +1901,20 @@ func (app *GTKApp) SetCurrentFolder(dialogName, folderPath string) {
     dialog := C.gtk_builder_get_object(app.builder, cDialogName)
     if dialog != nil {
         C.gtk_file_chooser_set_current_folder_wrapper((*C.GObject)(dialog), cFolderPath)
+    }
+}
+
+func (app *GTKApp) ShowDialog(dialogName string) {
+    cPopoverName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cPopoverName))
+
+    popover := C.gtk_builder_get_object(app.builder, cPopoverName)
+    if popover != nil {
+        // Conectar el manejador de ESC (solo una vez)
+        C.connect_popover_escape_handler(popover)
+        C.gtk_widget_set_visible(
+            (*C.GtkWidget)(unsafe.Pointer(popover)),
+            C.TRUE,
+        )
     }
 }

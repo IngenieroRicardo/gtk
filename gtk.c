@@ -687,3 +687,18 @@ gchar* gtk_file_chooser_get_filename_wrapper(GObject *chooser) {
 void gtk_file_chooser_set_current_folder_wrapper(GObject *chooser, const gchar *folder) {
     gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(chooser), folder);
 }
+
+gboolean handle_popover_key_press(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
+    if (event->keyval == GDK_KEY_Escape) {
+        gtk_widget_hide(widget);
+        return TRUE; // Indicamos que hemos manejado el evento
+    }
+    return FALSE; // Evento no manejado
+}
+
+void connect_popover_escape_handler(GObject *popover) {
+    g_signal_connect(G_OBJECT(popover), 
+                   "key-press-event", 
+                   G_CALLBACK(handle_popover_key_press), 
+                   NULL);
+}
