@@ -187,6 +187,16 @@ extern gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view);
 extern void gtk_statusbar_set_text_wrapper(GObject *statusbar, const gchar *text);
 extern const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar);
 
+
+
+
+
+
+
+
+
+extern gchar* gtk_file_chooser_get_filename_wrapper(GObject *chooser);
+extern void gtk_file_chooser_set_current_folder_wrapper(GObject *chooser, const gchar *folder);
 */
 import "C"
 import (
@@ -1840,4 +1850,54 @@ func (app *GTKApp) GetStatusBar(statusbarName string) string {
         }
     }
     return ""
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// GetSelectedFilePath obtiene la ruta completa del archivo seleccionado en un FileChooserDialog
+func (app *GTKApp) GetSelectedFilePath(dialogName string) string {
+    cDialogName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cDialogName))
+
+    dialog := C.gtk_builder_get_object(app.builder, cDialogName)
+    if dialog != nil {
+        cPath := C.gtk_file_chooser_get_filename_wrapper((*C.GObject)(dialog))
+        defer C.g_free(C.gpointer(cPath)) // Importante: liberar la memoria
+        return C.GoString(cPath)
+    }
+    return ""
+}
+
+// SetCurrentFolder establece el directorio inicial para un FileChooserDialog
+func (app *GTKApp) SetCurrentFolder(dialogName, folderPath string) {
+    cDialogName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cDialogName))
+
+    cFolderPath := C.CString(folderPath)
+    defer C.free(unsafe.Pointer(cFolderPath))
+
+    dialog := C.gtk_builder_get_object(app.builder, cDialogName)
+    if dialog != nil {
+        C.gtk_file_chooser_set_current_folder_wrapper((*C.GObject)(dialog), cFolderPath)
+    }
 }

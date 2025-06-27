@@ -660,3 +660,30 @@ const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar) {
     
     return NULL;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+gchar* gtk_file_chooser_get_filename_wrapper(GObject *chooser) {
+    return gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(chooser));
+}
+
+void gtk_file_chooser_set_current_folder_wrapper(GObject *chooser, const gchar *folder) {
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(chooser), folder);
+}
