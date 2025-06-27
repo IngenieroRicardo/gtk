@@ -1918,3 +1918,7 @@ func (app *GTKApp) ShowDialog(dialogName string) {
         )
     }
 }
+
+func (app *GTKApp) HideDialog(popoverName string) {
+	app.setPopoverVisibility(popoverName, false)
+}
