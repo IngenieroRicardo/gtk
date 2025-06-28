@@ -702,3 +702,17 @@ void connect_popover_escape_handler(GObject *popover) {
                    G_CALLBACK(handle_popover_key_press), 
                    NULL);
 }
+
+
+
+
+
+
+
+
+
+// Añadir esta función para manejar el delete-event
+gboolean on_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data) {
+    gtk_widget_hide(widget);
+    return TRUE; // Indicamos que hemos manejado el evento y no debe continuar
+}

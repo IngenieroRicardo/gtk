@@ -6,7 +6,6 @@ package gtk
 #include <stdlib.h>
 
 
-
 // Solo declaración (no definición)
 extern void goCallbackProxy(gpointer data);
 
@@ -199,6 +198,8 @@ extern gchar* gtk_file_chooser_get_filename_wrapper(GObject *chooser);
 extern void gtk_file_chooser_set_current_folder_wrapper(GObject *chooser, const gchar *folder);
 
 extern void connect_popover_escape_handler(GObject *popover);
+
+extern gboolean on_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data);
 */
 import "C"
 import (
@@ -221,15 +222,20 @@ var (
     globalBuilder   *C.GtkBuilder
 )
 
+
+
 var (
+    hideDialogCallbacks = make(map[string]func()) // Nuevo mapa para callbacks de ocultación
+
     editedCallbacks = make(map[string]func(row, col int, newValue string)) // Nuevo mapa para callbacks de edición
 )
 
+// Modificar goCallbackProxy para manejar los callbacks de ocultación
 //export goCallbackProxy
 func goCallbackProxy(data unsafe.Pointer) {
-
-	fullData := C.GoString((*C.char)(data))
+    fullData := C.GoString((*C.char)(data))
     
+    // Verificar si es una señal de edición de celda
     parts := strings.SplitN(fullData, "::", 4)
     if len(parts) == 4 {
         id := parts[0]
@@ -244,20 +250,26 @@ func goCallbackProxy(data unsafe.Pointer) {
         callbackMutex.Unlock()
         return
     }
-
     
+    // Verificar si es una señal de ocultación de diálogo
+    if strings.HasSuffix(fullData, "::hide") {
+        dialogName := strings.TrimSuffix(fullData, "::hide")
+        callbackMutex.Lock()
+        if cb, ok := hideDialogCallbacks[dialogName]; ok {
+            cb()
+        }
+        callbackMutex.Unlock()
+        return
+    }
 
-
+    // Resto del código existente...
     callbackMutex.Lock()
     if cb, ok := callbacks[fullData]; ok {
         cb()
     }
     callbackMutex.Unlock()
     
-	id := C.GoString((*C.char)(data))
-
-
-
+    id := C.GoString((*C.char)(data))
     if scb, ok := switchCallbacks[id]; ok {
         parts := strings.Split(id, "::")
         if len(parts) > 0 {
@@ -272,8 +284,7 @@ func goCallbackProxy(data unsafe.Pointer) {
             }
         }
     }
-}
-    
+}    
 
 type GTKApp struct {
 	builder *C.GtkBuilder
@@ -335,6 +346,7 @@ func (app *GTKApp) ConnectSignal(widgetName, signal string, callback func()) {
     )
 }
 
+// Modificar ConnectSignalDirect para manejar la señal "hide"
 func (app *GTKApp) ConnectSignalDirect(widgetName, signal string, callback uintptr, data unsafe.Pointer) {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
@@ -348,8 +360,17 @@ func (app *GTKApp) ConnectSignalDirect(widgetName, signal string, callback uintp
         gCallback = C.GCallback(C.gtk_main_quit)
     } else if callback == 1 {
         gCallback = C.GCallback(C.gtk_window_close)
+    } else if callback == 2 {
+        // Para la señal "hide", creamos un ID especial
+        id := widgetName + "::hide"
+        cId := C.CString(id)
+        gCallback = C.GCallback(C.go_callback_bridge)
+        data = unsafe.Pointer(cId)
+    } else if callback == 3 {
+        // Para la señal "delete-event"
+        gCallback = C.GCallback(C.on_delete_event)
     } else {
-    	gCallback = C.GCallback(C.gtk_widget_hide)
+        gCallback = C.GCallback(C.gtk_widget_hide)
     }
     
     C.g_signal_connect_data(
@@ -361,6 +382,9 @@ func (app *GTKApp) ConnectSignalDirect(widgetName, signal string, callback uintp
         0,
     )
 }
+
+
+
 
 func (app *GTKApp) GetWindow(name string) unsafe.Pointer {
 	cName := C.CString(name)
@@ -1904,7 +1928,7 @@ func (app *GTKApp) SetCurrentFolder(dialogName, folderPath string) {
     }
 }
 
-func (app *GTKApp) ShowDialog(dialogName string) {
+/*func (app *GTKApp) ShowDialog(dialogName string) {
     cPopoverName := C.CString(dialogName)
     defer C.free(unsafe.Pointer(cPopoverName))
 
@@ -1917,8 +1941,74 @@ func (app *GTKApp) ShowDialog(dialogName string) {
             C.TRUE,
         )
     }
+}*/
+
+func (app *GTKApp) ShowDialog(dialogName string) {
+    cPopoverName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cPopoverName))
+
+    popover := C.gtk_builder_get_object(app.builder, cPopoverName)
+    if popover != nil {
+        // Conectar el manejador de ESC (solo una vez)
+        C.connect_popover_escape_handler(popover)
+        
+        // Conectar el manejador para el botón de cerrar (X)
+        app.ConnectSignalDirect(dialogName, "delete-event", 3, nil) // 3 representa delete-event
+        
+        C.gtk_widget_set_visible(
+            (*C.GtkWidget)(unsafe.Pointer(popover)),
+            C.TRUE,
+        )
+    }
 }
 
 func (app *GTKApp) HideDialog(dialogName string) {
 	app.setPopoverVisibility(dialogName, false)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// OnHideDialog registra una función que se ejecutará cuando el diálogo se oculte
+func (app *GTKApp) OnHideDialog(dialogName string, callback func()) {
+    callbackMutex.Lock()
+    hideDialogCallbacks[dialogName] = callback
+    callbackMutex.Unlock()
+    
+    // Conectar la señal de "hide" si no está ya conectada
+    cDialogName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cDialogName))
+    
+    widget := C.gtk_builder_get_object(app.builder, cDialogName)
+    if widget != nil {
+        // Usamos ConnectSignalDirect para conectar la señal "hide"
+        app.ConnectSignalDirect(dialogName, "hide", 2, nil) // 2 representa la señal hide
+    }
+}
+
+
+
+
+
+
+
+// Show muestra la ventana principal
+func (app *GTKApp) Show(window unsafe.Pointer) {
+    gtkwidget := (*C.GtkWidget)(window)
+    C.gtk_widget_show(gtkwidget)
+}
+
+// Hide oculta la ventana principal
+func (app *GTKApp) Hide(window unsafe.Pointer) {
+    gtkwidget := (*C.GtkWidget)(window)
+    C.gtk_widget_hide(gtkwidget)
 }
