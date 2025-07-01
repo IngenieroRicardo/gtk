@@ -492,3 +492,11 @@ void gtk_image_set_from_file_wrapper(GObject *image, const gchar *filename) {
 void gtk_image_set_from_icon_name_wrapper(GObject *image, const gchar *icon_name, int size) {
     gtk_image_set_from_icon_name(GTK_IMAGE(image), icon_name, size);
 }
+
+void gtk_spinner_start_wrapper(GObject *spinner) {
+    gtk_spinner_start(GTK_SPINNER(spinner));
+}
+
+void gtk_spinner_stop_wrapper(GObject *spinner) {
+    gtk_spinner_stop(GTK_SPINNER(spinner));
+}

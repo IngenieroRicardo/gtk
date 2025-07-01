@@ -94,6 +94,10 @@ extern gboolean on_delete_event(GtkWidget *widget, GdkEvent *event, gpointer use
 
 extern void gtk_image_set_from_file_wrapper(GObject *image, const gchar *filename);
 extern void gtk_image_set_from_icon_name_wrapper(GObject *image, const gchar *icon_name, int size);
+
+
+extern void gtk_spinner_start_wrapper(GObject *spinner);
+extern void gtk_spinner_stop_wrapper(GObject *spinner);
 */
 import "C"
 import (
@@ -105,6 +109,7 @@ import (
 	"encoding/json"
 	"runtime"
 	"strconv"
+    "math"
 )
 
 var (
@@ -1172,6 +1177,48 @@ func (app *GTKApp) ConnectTreeViewSignal(treeViewName string, callback func(row,
     }
 }
 
+                /* GtkProgressBar */
+
+func (app *GTKApp) SetProgressBarValue(progressName string, value float64) {
+    cProgressName := C.CString(progressName)
+    defer C.free(unsafe.Pointer(cProgressName))
+    widget := C.gtk_builder_get_object(app.builder, cProgressName)
+    if widget != nil {
+        progressBar := (*C.GtkProgressBar)(unsafe.Pointer(widget))
+        clampedValue := math.Max(0.0, math.Min(1.0, value))
+        C.gtk_progress_bar_set_fraction(progressBar, C.gdouble(clampedValue))
+        percentage := fmt.Sprintf("%.0f%%", clampedValue*100)
+        cText := C.CString(percentage)
+        defer C.free(unsafe.Pointer(cText))
+        C.gtk_progress_bar_set_text(progressBar, cText)
+        C.gtk_progress_bar_set_show_text(progressBar, C.TRUE)
+    }
+}
+
+func (app *GTKApp) GetProgressBarValue(progressName string) float64 {
+    cProgressName := C.CString(progressName)
+    defer C.free(unsafe.Pointer(cProgressName))
+    widget := C.gtk_builder_get_object(app.builder, cProgressName)
+    if widget != nil {
+        return float64(C.gtk_progress_bar_get_fraction((*C.GtkProgressBar)(unsafe.Pointer(widget))))
+    }
+    return 0.0
+}
+
+func (app *GTKApp) SetProgressBarDrawValue(progressName string, show bool) {
+    cProgressName := C.CString(progressName)
+    defer C.free(unsafe.Pointer(cProgressName))
+    widget := C.gtk_builder_get_object(app.builder, cProgressName)
+    if widget != nil {
+        progressBar := (*C.GtkProgressBar)(unsafe.Pointer(widget))
+        var cShow C.gboolean = C.FALSE
+        if show {
+            cShow = C.TRUE
+        }
+        C.gtk_progress_bar_set_show_text(progressBar, cShow)
+    }
+}
+
                 /* GtkPopover */
 
 func (app *GTKApp) ShowPopover(popoverName string) {
@@ -1290,5 +1337,25 @@ func (app *GTKApp) SetCurrentFolder(dialogName, folderPath string) {
     dialog := C.gtk_builder_get_object(app.builder, cDialogName)
     if dialog != nil {
         C.gtk_file_chooser_set_current_folder_wrapper((*C.GObject)(dialog), cFolderPath)
+    }
+}
+
+                /* GtkSpinner */
+
+func (app *GTKApp) StartSpinner(spinnerName string) {
+    cSpinnerName := C.CString(spinnerName)
+    defer C.free(unsafe.Pointer(cSpinnerName))
+    spinner := C.gtk_builder_get_object(app.builder, cSpinnerName)
+    if spinner != nil {
+        C.gtk_spinner_start_wrapper((*C.GObject)(spinner))
+    }
+}
+
+func (app *GTKApp) StopSpinner(spinnerName string) {
+    cSpinnerName := C.CString(spinnerName)
+    defer C.free(unsafe.Pointer(cSpinnerName))
+    spinner := C.gtk_builder_get_object(app.builder, cSpinnerName)
+    if spinner != nil {
+        C.gtk_spinner_stop_wrapper((*C.GObject)(spinner))
     }
 }
