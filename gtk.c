@@ -2,7 +2,6 @@
 #include <gtk/gtkspinner.h> 
 #include <stdlib.h>
 
-
 extern void goCallbackProxy(gpointer data);
 
 typedef struct {
@@ -10,7 +9,6 @@ typedef struct {
     gint column;
     gchar *id;
 } EditedData;
-
 
 void go_callback_bridge(GtkWidget *widget, gpointer data) {
     goCallbackProxy(data);
@@ -20,8 +18,6 @@ gboolean isswitch(GObject *object) {
     return GTK_IS_SWITCH(object);
 }
 
-
-// Funciones wrapper para GtkEntry
 void gtk_entry_set_text_wrapper(GObject *entry, const gchar *text) {
     gtk_entry_set_text(GTK_ENTRY(entry), text);
 }
@@ -30,7 +26,6 @@ const gchar* gtk_entry_get_text_wrapper(GObject *entry) {
     return gtk_entry_get_text(GTK_ENTRY(entry));
 }
 
-// Funciones wrapper para GtkLabel
 void gtk_label_set_text_wrapper(GObject *label, const gchar *text) {
     gtk_label_set_text(GTK_LABEL(label), text);
 }
@@ -39,8 +34,6 @@ const gchar* gtk_label_get_text_wrapper(GObject *label) {
     return gtk_label_get_text(GTK_LABEL(label));
 }
 
-
-// Funciones wrapper para GtkButton
 void gtk_button_set_label_wrapper(GObject *button, const gchar *text) {
     gtk_button_set_label(GTK_BUTTON(button), text);
 }
@@ -57,16 +50,6 @@ gboolean gtk_button_get_sensitive_wrapper(GObject *button) {
     return gtk_widget_get_sensitive(GTK_WIDGET(button));
 }
 
-
-
-
-
-
-
-
-
-
-// Función única para manejar ToggleButton y CheckButton
 void gtk_toggle_button_set_active_wrapper(GObject *toggle_widget, gboolean active) {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toggle_widget), active);
 }
@@ -75,11 +58,6 @@ gboolean gtk_toggle_button_get_active_wrapper(GObject *toggle_widget) {
     return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(toggle_widget));
 }
 
-
-
-
-
-// Funciones wrapper para GtkMenuItem
 void gtk_menu_item_set_label_wrapper(GObject *menu_item, const gchar *label) {
     gtk_menu_item_set_label(GTK_MENU_ITEM(menu_item), label);
 }
@@ -111,17 +89,6 @@ gboolean gtk_menu_item_get_active_wrapper(GObject *menu_item) {
     return FALSE;
 }
 
-
-
-
-
-
-
-
-
-
-
-// Funciones wrapper para GtkPopover
 void gtk_popover_set_visible_wrapper(GObject *popover, gboolean visible) {
     gtk_widget_set_visible(GTK_WIDGET(popover), visible);
 }
@@ -143,15 +110,6 @@ void set_popover_position(GObject *popover, GtkPositionType position) {
     }
 }
 
-
-
-
-
-
-
-
-
-
 void gtk_entry_set_visibility_wrapper(GObject *entry, gboolean visible) {
     gtk_entry_set_visibility(GTK_ENTRY(entry), visible);
 }
@@ -160,18 +118,6 @@ gboolean gtk_entry_get_visibility_wrapper(GObject *entry) {
     return gtk_entry_get_visibility(GTK_ENTRY(entry));
 }
 
-
-
-
-
-
-
-
-
-
-
-
-// Funciones wrapper para GtkComboBoxText
 void gtk_combo_box_text_append_wrapper(GObject *combo, const gchar *id, const gchar *text) {
     gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combo), id, text);
 }
@@ -200,23 +146,6 @@ const gchar* gtk_combo_box_text_get_active_text_wrapper(GObject *combo) {
     return gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo));
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Implementación para GtkSwitch
 void gtk_switch_set_active_wrapper(GObject *sw, gboolean active) {
     gtk_switch_set_active(GTK_SWITCH(sw), active);
 }
@@ -230,22 +159,6 @@ void go_switch_state_set_bridge(GtkWidget *widget, gboolean state, gpointer data
     goCallbackProxy(data);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Implementación corregida para GtkScale
 void gtk_scale_set_value_wrapper(GObject *scale, gdouble value) {
     gtk_range_set_value(GTK_RANGE(scale), value);
 }
@@ -266,25 +179,6 @@ void gtk_scale_set_draw_value_wrapper(GObject *scale, gboolean draw_value) {
     gtk_scale_set_draw_value(GTK_SCALE(scale), draw_value);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Funciones wrapper para GtkTextView
 void gtk_text_view_set_text_wrapper(GObject *text_view, const gchar *text) {
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
     gtk_text_buffer_set_text(buffer, text, -1);
@@ -321,23 +215,6 @@ gboolean gtk_text_view_get_cursor_visible_wrapper(GObject *text_view) {
     return gtk_text_view_get_cursor_visible(GTK_TEXT_VIEW(text_view));
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// TreeView functions
 void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view) {
     GList *columns = gtk_tree_view_get_columns(tree_view);
     GList *iter = columns;
@@ -408,9 +285,6 @@ gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint colum
     return result;
 }
 
-
-// Callback para la señal "edited"
-// Modificar la función on_cell_edited
 void on_cell_edited(GtkCellRendererText *renderer, gchar *path, gchar *new_text, gpointer user_data) {
     gchar *id = (gchar *)user_data;
     GtkTreeView *tree_view = GTK_TREE_VIEW(g_object_get_data(G_OBJECT(renderer), "tree-view"));
@@ -431,8 +305,6 @@ void on_cell_edited(GtkCellRendererText *renderer, gchar *path, gchar *new_text,
     g_free(full_data);
 }
 
-
-// Función para hacer editable una columna específica
 void gtk_tree_view_set_column_editable(GtkTreeView *tree_view, gint column_index, gboolean editable) {
     GtkTreeViewColumn *column = gtk_tree_view_get_column(tree_view, column_index);
     if (column == NULL) return;
@@ -446,7 +318,6 @@ void gtk_tree_view_set_column_editable(GtkTreeView *tree_view, gint column_index
     g_list_free(renderers);
 }
 
-// Función para conectar la señal de edición
 void gtk_tree_view_connect_edited_signal(GtkTreeView *tree_view, gint column_index, const gchar *id) {
     GtkTreeViewColumn *column = gtk_tree_view_get_column(tree_view, column_index);
     if (column == NULL) return;
@@ -466,7 +337,6 @@ void gtk_tree_view_connect_edited_signal(GtkTreeView *tree_view, gint column_ind
     g_list_free(renderers);
 }
 
-// Función para actualizar un valor en el modelo
 void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *new_value) {
     GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
     if (!model) return;
@@ -479,25 +349,6 @@ void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column,
     gtk_list_store_set(GTK_LIST_STORE(model), &iter, column, new_value, -1);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Obtiene una fila completa como JSON
 gchar* gtk_tree_view_get_row_json(GtkTreeView *tree_view, gint row) {
     GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
     if (!model) return NULL;
@@ -546,8 +397,6 @@ gchar* gtk_tree_view_get_row_json(GtkTreeView *tree_view, gint row) {
     return g_string_free(json, FALSE);
 }
 
-
-// Agregar esta función en tabla.c
 void gtk_tree_view_add_empty_row(GtkTreeView *tree_view) {
     GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
     if (!model) return;
@@ -564,8 +413,6 @@ void gtk_tree_view_add_empty_row(GtkTreeView *tree_view) {
     }
 }
 
-
-// Agregar esta función en tabla.c
 gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view) {
     GtkTreeSelection *selection = gtk_tree_view_get_selection(tree_view);
     GtkTreeModel *model;
@@ -578,56 +425,6 @@ gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view) {
     return FALSE;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Versión corregida para Statusbar
 void gtk_statusbar_set_text_wrapper(GObject *statusbar, const gchar *text) {
     if (!GTK_IS_STATUSBAR(statusbar)) return;
     
@@ -642,7 +439,6 @@ void gtk_statusbar_set_text_wrapper(GObject *statusbar, const gchar *text) {
     gtk_statusbar_push(GTK_STATUSBAR(statusbar), context_id, text);
 }
 
-// Implementación alternativa para obtener el texto actual
 const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar) {
     if (!GTK_IS_STATUSBAR(statusbar)) return NULL;
     
@@ -660,25 +456,6 @@ const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar) {
     
     return NULL;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 gchar* gtk_file_chooser_get_filename_wrapper(GObject *chooser) {
     return gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(chooser));
@@ -703,16 +480,15 @@ void connect_popover_escape_handler(GObject *popover) {
                    NULL);
 }
 
-
-
-
-
-
-
-
-
-// Añadir esta función para manejar el delete-event
 gboolean on_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data) {
     gtk_widget_hide(widget);
     return TRUE; // Indicamos que hemos manejado el evento y no debe continuar
+}
+
+void gtk_image_set_from_file_wrapper(GObject *image, const gchar *filename) {
+    gtk_image_set_from_file(GTK_IMAGE(image), filename);
+}
+
+void gtk_image_set_from_icon_name_wrapper(GObject *image, const gchar *icon_name, int size) {
+    gtk_image_set_from_icon_name(GTK_IMAGE(image), icon_name, size);
 }

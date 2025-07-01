@@ -5,40 +5,23 @@ package gtk
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
-
-// Solo declaración (no definición)
 extern void goCallbackProxy(gpointer data);
-
-// Declaración de la función puente (definición en otro archivo)
 extern void go_callback_bridge(GtkWidget *widget, gpointer data);
 
-
-// Nuevas declaraciones con GObject* como parámetro
 extern void gtk_entry_set_text_wrapper(GObject *entry, const gchar *text);
 extern const gchar* gtk_entry_get_text_wrapper(GObject *entry);
 
-
-// Nuevas declaraciones para GtkLabel
 extern void gtk_label_set_text_wrapper(GObject *label, const gchar *text);
 extern const gchar* gtk_label_get_text_wrapper(GObject *label);
 
-
-
-// Nuevas declaraciones para GtkButton
 extern void gtk_button_set_label_wrapper(GObject *button, const gchar *text);
 extern const gchar* gtk_button_get_label_wrapper(GObject *button);
 extern void gtk_button_set_sensitive_wrapper(GObject *button, gboolean sensitive);
 extern gboolean gtk_button_get_sensitive_wrapper(GObject *button);
 
-
 extern void gtk_toggle_button_set_active_wrapper(GObject *toggle_widget, gboolean active);
 extern gboolean gtk_toggle_button_get_active_wrapper(GObject *toggle_widget);
 
-
-
-
-
-// Nuevas declaraciones para GtkMenuItem
 extern void gtk_menu_item_set_label_wrapper(GObject *menu_item, const gchar *label);
 extern const gchar* gtk_menu_item_get_label_wrapper(GObject *menu_item);
 extern void gtk_menu_item_set_sensitive_wrapper(GObject *menu_item, gboolean sensitive);
@@ -46,36 +29,13 @@ extern gboolean gtk_menu_item_get_sensitive_wrapper(GObject *menu_item);
 extern void gtk_menu_item_set_active_wrapper(GObject *menu_item, gboolean active);
 extern gboolean gtk_menu_item_get_active_wrapper(GObject *menu_item);
 
-
-
-
-
-
-// Popover functions
 extern void gtk_popover_set_visible_wrapper(GObject *popover, gboolean visible);
 extern gboolean gtk_popover_get_visible_wrapper(GObject *popover);
 extern void show_popover(GObject *popover);
 extern void set_popover_position(GObject *popover, GtkPositionType position);
 
-
-
-
-
-
-
-
-
-
 extern void gtk_entry_set_visibility_wrapper(GObject *entry, gboolean visible);
 extern gboolean gtk_entry_get_visibility_wrapper(GObject *entry);
-
-
-
-
-
-
-
-
 
 extern void gtk_combo_box_text_append_wrapper(GObject *combo, const gchar *id, const gchar *text);
 extern void gtk_combo_box_text_prepend_wrapper(GObject *combo, const gchar *id, const gchar *text);
@@ -85,22 +45,8 @@ extern void gtk_combo_box_set_active_wrapper(GObject *combo, gint index);
 extern gint gtk_combo_box_get_active_wrapper(GObject *combo);
 extern const gchar* gtk_combo_box_text_get_active_text_wrapper(GObject *combo);
 
-
-
-
-
-// Declaraciones para GtkSwitch
 extern void gtk_switch_set_active_wrapper(GObject *sw, gboolean active);
 extern gboolean gtk_switch_get_active_wrapper(GObject *sw);
-
-
-
-
-
-
-
-
-
 
 extern void gtk_scale_set_value_wrapper(GObject *scale, gdouble value);
 extern gdouble gtk_scale_get_value_wrapper(GObject *scale);
@@ -108,22 +54,8 @@ extern void gtk_scale_set_range_wrapper(GObject *scale, gdouble min, gdouble max
 extern void gtk_scale_set_digits_wrapper(GObject *scale, gint digits);
 extern void gtk_scale_set_draw_value_wrapper(GObject *scale, gboolean draw_value);
 
-
-
-
-
-
 extern void go_switch_state_set_bridge(GtkWidget *widget, gboolean state, gpointer data);
 extern gboolean isswitch(GObject *object);
-
-
-
-
-
-
-
-
-
 
 extern void gtk_text_view_set_text_wrapper(GObject *text_view, const gchar *text);
 extern gchar* gtk_text_view_get_text_wrapper(GObject *text_view);
@@ -134,23 +66,6 @@ extern GtkWrapMode gtk_text_view_get_wrap_mode_wrapper(GObject *text_view);
 extern void gtk_text_view_set_cursor_visible_wrapper(GObject *text_view, gboolean visible);
 extern gboolean gtk_text_view_get_cursor_visible_wrapper(GObject *text_view);
 
-
-
-
-
-
-
-
-
-
-
-
-
-// ------------------------------
-
-
-
-
 extern void gtk_tree_view_remove_all_columns(GtkTreeView *tree_view);
 extern void gtk_tree_view_append_column_with_title(GtkTreeView *tree_view, const gchar *title, gint column_index);
 extern GtkListStore* gtk_list_store_new_with_columns(gint n_columns, GType *types);
@@ -159,40 +74,16 @@ extern void gtk_list_store_append_row(GtkListStore *store, gint n_columns, const
 extern void gtk_tree_view_get_model_info(GtkTreeView *tree_view, gint *n_columns, gint *n_rows);
 extern gchar* gtk_tree_view_get_cell_value(GtkTreeView *tree_view, gint row, gint column);
 
-
 extern void gtk_tree_view_set_column_editable(GtkTreeView *tree_view, gint column_index, gboolean editable);
 extern void gtk_tree_view_connect_edited_signal(GtkTreeView *tree_view, gint column_index, const gchar *id);
 extern void gtk_tree_view_set_cell_value(GtkTreeView *tree_view, gint row, gint column, const gchar *new_value);
 extern gchar* gtk_tree_view_get_row_json(GtkTreeView *tree_view, gint row);
 
-
-
-
 extern void gtk_tree_view_add_empty_row(GtkTreeView *tree_view);
 extern gboolean gtk_tree_view_remove_selected_row(GtkTreeView *tree_view);
 
-
-
-
-
-
-
-
-
-
-
-
-
 extern void gtk_statusbar_set_text_wrapper(GObject *statusbar, const gchar *text);
 extern const gchar* gtk_statusbar_get_text_wrapper(GObject *statusbar);
-
-
-
-
-
-
-
-
 
 extern gchar* gtk_file_chooser_get_filename_wrapper(GObject *chooser);
 extern void gtk_file_chooser_set_current_folder_wrapper(GObject *chooser, const gchar *folder);
@@ -200,6 +91,9 @@ extern void gtk_file_chooser_set_current_folder_wrapper(GObject *chooser, const 
 extern void connect_popover_escape_handler(GObject *popover);
 
 extern gboolean on_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data);
+
+extern void gtk_image_set_from_file_wrapper(GObject *image, const gchar *filename);
+extern void gtk_image_set_from_icon_name_wrapper(GObject *image, const gchar *icon_name, int size);
 */
 import "C"
 import (
@@ -213,24 +107,19 @@ import (
 	"strconv"
 )
 
-    
-
 var (
     callbackMutex   sync.Mutex
     callbacks       = make(map[string]func())
     switchCallbacks = make(map[string]func(bool))
     globalBuilder   *C.GtkBuilder
+    hideDialogCallbacks = make(map[string]func())
+    editedCallbacks = make(map[string]func(row, col int, newValue string))
 )
 
+type GTKApp struct {
+    builder *C.GtkBuilder
+}
 
-
-var (
-    hideDialogCallbacks = make(map[string]func()) // Nuevo mapa para callbacks de ocultación
-
-    editedCallbacks = make(map[string]func(row, col int, newValue string)) // Nuevo mapa para callbacks de edición
-)
-
-// Modificar goCallbackProxy para manejar los callbacks de ocultación
 //export goCallbackProxy
 func goCallbackProxy(data unsafe.Pointer) {
     fullData := C.GoString((*C.char)(data))
@@ -262,7 +151,6 @@ func goCallbackProxy(data unsafe.Pointer) {
         return
     }
 
-    // Resto del código existente...
     callbackMutex.Lock()
     if cb, ok := callbacks[fullData]; ok {
         cb()
@@ -286,10 +174,6 @@ func goCallbackProxy(data unsafe.Pointer) {
     }
 }    
 
-type GTKApp struct {
-	builder *C.GtkBuilder
-}
-
 func NewGTKApp() *GTKApp {
 	C.gtk_init(nil, nil)
 	return &GTKApp{}
@@ -300,60 +184,46 @@ func (app *GTKApp) LoadUI(filename string) error {
     if app.builder == nil {
         return errors.New("no se pudo crear el builder")
     }
-
-    // Establece el builder global
     globalBuilder = app.builder
-
     cFilename := C.CString(filename)
     defer C.free(unsafe.Pointer(cFilename))
-
     if C.gtk_builder_add_from_file(app.builder, cFilename, nil) == 0 {
         C.g_object_unref(C.gpointer(unsafe.Pointer(app.builder)))
         globalBuilder = nil
         return errors.New("error al cargar el archivo UI")
     }
-
     return nil
 }
 
 func (app *GTKApp) ConnectSignal(widgetName, signal string, callback func()) {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     cSignal := C.CString(signal)
     defer C.free(unsafe.Pointer(cSignal))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget == nil {
         return
     }
-
-    // Crear un ID único basado en widgetName y signal
     id := widgetName + "::" + signal
-    cId := C.CString(id)
-    
+    cId := C.CString(id)    
     callbackMutex.Lock()
     callbacks[id] = callback
     callbackMutex.Unlock()
-
     C.g_signal_connect_data(
         C.gpointer(widget),
         cSignal,
         C.GCallback(C.go_callback_bridge),
         C.gpointer(unsafe.Pointer(cId)),
-        C.GClosureNotify(C.free), // Esto liberará la memoria cuando la señal se desconecte
+        C.GClosureNotify(C.free), 
         0,
     )
 }
 
-// Modificar ConnectSignalDirect para manejar la señal "hide"
 func (app *GTKApp) ConnectSignalDirect(widgetName, signal string, callback uintptr, data unsafe.Pointer) {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     cSignal := C.CString(signal)
     defer C.free(unsafe.Pointer(cSignal))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     var gCallback C.GCallback
     if callback == 0 {
@@ -372,7 +242,6 @@ func (app *GTKApp) ConnectSignalDirect(widgetName, signal string, callback uintp
     } else {
         gCallback = C.GCallback(C.gtk_widget_hide)
     }
-    
     C.g_signal_connect_data(
         C.gpointer(widget),
         cSignal,
@@ -383,9 +252,6 @@ func (app *GTKApp) ConnectSignalDirect(widgetName, signal string, callback uintp
     )
 }
 
-
-
-
 func (app *GTKApp) GetWindow(name string) unsafe.Pointer {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
@@ -393,11 +259,20 @@ func (app *GTKApp) GetWindow(name string) unsafe.Pointer {
 	return unsafe.Pointer(obj)
 }
 
-
 func (app *GTKApp) Run(window unsafe.Pointer) {
     gtkwidget := (*C.GtkWidget)(window)
     C.gtk_widget_show_all(gtkwidget)
     C.gtk_main()
+}
+
+func (app *GTKApp) Show(window unsafe.Pointer) {
+    gtkwidget := (*C.GtkWidget)(window)
+    C.gtk_widget_show(gtkwidget)
+}
+
+func (app *GTKApp) Hide(window unsafe.Pointer) {
+    gtkwidget := (*C.GtkWidget)(window)
+    C.gtk_widget_hide(gtkwidget)
 }
 
 func (app *GTKApp) Quit() {
@@ -414,29 +289,47 @@ func (app *GTKApp) Cleanup() {
 }
 
 
+                /* GtkLabel */
 
+func (app *GTKApp) SetLabelText(widgetName, text string) {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+    cText := C.CString(text)
+    defer C.free(unsafe.Pointer(cText))
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_label_set_text_wrapper((*C.GObject)(widget), cText)
+    }
+}
 
+func (app *GTKApp) GetLabelText(widgetName string) string {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
 
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        cText := C.gtk_label_get_text_wrapper((*C.GObject)(widget))
+        return C.GoString(cText)
+    }
+    return ""
+}
 
-// SetEntryText establece el texto de un GtkEntry
+                /* GtkEntry */
+
 func (app *GTKApp) SetEntryText(widgetName, text string) {
 	cWidgetName := C.CString(widgetName)
 	defer C.free(unsafe.Pointer(cWidgetName))
-
 	cText := C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
-
 	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
 	if widget != nil {
 		C.gtk_entry_set_text_wrapper((*C.GObject)(widget), cText)
 	}
 }
 
-// GetEntryText obtiene el texto de un GtkEntry
 func (app *GTKApp) GetEntryText(widgetName string) string {
 	cWidgetName := C.CString(widgetName)
 	defer C.free(unsafe.Pointer(cWidgetName))
-
 	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
 	if widget != nil {
 		cText := C.gtk_entry_get_text_wrapper((*C.GObject)(widget))
@@ -445,66 +338,50 @@ func (app *GTKApp) GetEntryText(widgetName string) string {
 	return ""
 }
 
+func (app *GTKApp) SetEntryVisibility(entryName string, visible bool) {
+    cEntryName := C.CString(entryName)
+    defer C.free(unsafe.Pointer(cEntryName))
 
+    var cVisible C.gboolean
+    if visible {
+        cVisible = C.TRUE
+    } else {
+        cVisible = C.FALSE
+    }
 
-
-
-
-// SetLabelText establece el texto de un GtkLabel
-func (app *GTKApp) SetLabelText(widgetName, text string) {
-	cWidgetName := C.CString(widgetName)
-	defer C.free(unsafe.Pointer(cWidgetName))
-
-	cText := C.CString(text)
-	defer C.free(unsafe.Pointer(cText))
-
-	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
-	if widget != nil {
-		C.gtk_label_set_text_wrapper((*C.GObject)(widget), cText)
-	}
+    widget := C.gtk_builder_get_object(app.builder, cEntryName)
+    if widget != nil {
+        C.gtk_entry_set_visibility_wrapper((*C.GObject)(widget), cVisible)
+    }
 }
 
-// GetLabelText obtiene el texto de un GtkLabel
-func (app *GTKApp) GetLabelText(widgetName string) string {
-	cWidgetName := C.CString(widgetName)
-	defer C.free(unsafe.Pointer(cWidgetName))
+func (app *GTKApp) GetEntryVisibility(entryName string) bool {
+    cEntryName := C.CString(entryName)
+    defer C.free(unsafe.Pointer(cEntryName))
 
-	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
-	if widget != nil {
-		cText := C.gtk_label_get_text_wrapper((*C.GObject)(widget))
-		return C.GoString(cText)
-	}
-	return ""
+    widget := C.gtk_builder_get_object(app.builder, cEntryName)
+    if widget != nil {
+        return C.gtk_entry_get_visibility_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
 }
 
+                /* GtkButton */
 
-
-
-
-
-
-
-
-
-// SetButtonText establece el texto de un GtkButton
 func (app *GTKApp) SetButtonText(widgetName, text string) {
 	cWidgetName := C.CString(widgetName)
 	defer C.free(unsafe.Pointer(cWidgetName))
-
 	cText := C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
-
 	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
 	if widget != nil {
 		C.gtk_button_set_label_wrapper((*C.GObject)(widget), cText)
 	}
 }
 
-// GetButtonText obtiene el texto de un GtkButton
 func (app *GTKApp) GetButtonText(widgetName string) string {
 	cWidgetName := C.CString(widgetName)
 	defer C.free(unsafe.Pointer(cWidgetName))
-
 	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
 	if widget != nil {
 		cText := C.gtk_button_get_label_wrapper((*C.GObject)(widget))
@@ -513,29 +390,27 @@ func (app *GTKApp) GetButtonText(widgetName string) string {
 	return ""
 }
 
-// SetButtonSensitive establece la sensibilidad de un GtkButton
-func (app *GTKApp) SetButtonSensitive(widgetName string, sensitive bool) {
-	cWidgetName := C.CString(widgetName)
-	defer C.free(unsafe.Pointer(cWidgetName))
-
-	var cSensitive C.gboolean
-	if sensitive {
-		cSensitive = C.TRUE
-	} else {
-		cSensitive = C.FALSE
-	}
-
-	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
-	if widget != nil {
-		C.gtk_button_set_sensitive_wrapper((*C.GObject)(widget), cSensitive)
-	}
+func (app *GTKApp) SetButtonEnable(widgetName string) {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_button_set_sensitive_wrapper((*C.GObject)(widget), C.TRUE)
+    }
 }
 
-// GetButtonSensitive obtiene el estado de sensibilidad de un GtkButton
-func (app *GTKApp) GetButtonSensitive(widgetName string) bool {
+func (app *GTKApp) SetButtonDisable(widgetName string) {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_button_set_sensitive_wrapper((*C.GObject)(widget), C.FALSE)
+    }
+}
+
+func (app *GTKApp) GetButtonStatus(widgetName string) bool {
 	cWidgetName := C.CString(widgetName)
 	defer C.free(unsafe.Pointer(cWidgetName))
-
 	widget := C.gtk_builder_get_object(app.builder, cWidgetName)
 	if widget != nil {
 		return C.gtk_button_get_sensitive_wrapper((*C.GObject)(widget)) != 0
@@ -543,54 +418,29 @@ func (app *GTKApp) GetButtonSensitive(widgetName string) bool {
 	return false
 }
 
+                /* GtkCheckButton */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// SetCheckButtonActive marca el GtkCheckButton
-func (app *GTKApp) SetCheckButtonUnchecked(widgetName string) {
-    app.setCheckButtonState(widgetName, true)
-}
-
-// SetCheckButtonInactive desmarca el GtkCheckButton
 func (app *GTKApp) SetCheckButtonChecked(widgetName string) {
-    app.setCheckButtonState(widgetName, false)
-}
-
-// Función interna para manejar el estado
-func (app *GTKApp) setCheckButtonState(widgetName string, active bool) {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
-    var cActive C.gboolean
-    if active {
-        cActive = C.TRUE
-    } else {
-        cActive = C.FALSE
-    }
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget != nil {
-        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), cActive)
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.TRUE)
     }
 }
 
-// GetCheckButtonStatus (se mantiene igual)
+func (app *GTKApp) SetCheckButtonUnchecked(widgetName string) {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.FALSE)
+    }
+}
+
 func (app *GTKApp) GetCheckButtonStatus(widgetName string) bool {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget != nil {
         return C.gtk_toggle_button_get_active_wrapper((*C.GObject)(widget)) != 0
@@ -598,48 +448,29 @@ func (app *GTKApp) GetCheckButtonStatus(widgetName string) bool {
     return false
 }
 
-// ToggleCheckButton (se mantiene igual)
-func (app *GTKApp) ToggleCheckButton(widgetName string) {
-    app.toggleWidget(widgetName)
-}
+                /* GtkToggleButton */
 
-func (app *GTKApp) ToggleToggleButton(widgetName string) {
-    app.toggleWidget(widgetName)
-}
-
-func (app *GTKApp) toggleWidget(widgetName string) {
-    currentState := app.getToggleState(widgetName)
-    app.setToggleState(widgetName, !currentState)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Funciones para ToggleButton
 func (app *GTKApp) SetToggleButtonActive(widgetName string) {
-    app.setToggleState(widgetName, true)
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.TRUE)
+    }
 }
 
 func (app *GTKApp) SetToggleButtonInactive(widgetName string) {
-    app.setToggleState(widgetName, false)
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget != nil {
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.FALSE)
+    }
 }
 
-func (app *GTKApp) GetToggleButtonActive(widgetName string) bool {
-    return app.getToggleState(widgetName)
-}
-
-func (app *GTKApp) getToggleState(widgetName string) bool {
+func (app *GTKApp) GetToggleButtonStatus(widgetName string) bool {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
 
@@ -650,74 +481,408 @@ func (app *GTKApp) getToggleState(widgetName string) bool {
     return false
 }
 
-// Función base común para toggle/check buttons
-func (app *GTKApp) setToggleState(widgetName string, active bool) {
-    cWidgetName := C.CString(widgetName)
-    defer C.free(unsafe.Pointer(cWidgetName))
+                /* GtkRadioButton */
 
-    var cActive C.gboolean
-    if active {
-        cActive = C.TRUE
-    } else {
-        cActive = C.FALSE
-    }
-
-    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+func (app *GTKApp) SetRadioButtonActive(buttonName string) {
+    cButtonName := C.CString(buttonName)
+    defer C.free(unsafe.Pointer(cButtonName))
+    widget := C.gtk_builder_get_object(app.builder, cButtonName)
     if widget != nil {
-        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), cActive)
+        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.TRUE)
     }
 }
 
+func (app *GTKApp) GetRadioButtonActive(buttonName string) bool {
+    cButtonName := C.CString(buttonName)
+    defer C.free(unsafe.Pointer(cButtonName))
+    widget := C.gtk_builder_get_object(app.builder, cButtonName)
+    if widget != nil {
+        return C.gtk_toggle_button_get_active_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
 
+                /* GtkSwitch */
 
+func (app *GTKApp) SetSwitchActive(switchName string) {
+    cSwitchName := C.CString(switchName)
+    defer C.free(unsafe.Pointer(cSwitchName))
+    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
+    if widget != nil {
+        C.gtk_switch_set_active_wrapper((*C.GObject)(widget), C.TRUE)
+    }
+}
 
+func (app *GTKApp) SetSwitchInactive(switchName string) {
+    cSwitchName := C.CString(switchName)
+    defer C.free(unsafe.Pointer(cSwitchName))
+    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
+    if widget != nil {
+        C.gtk_switch_set_active_wrapper((*C.GObject)(widget), C.FALSE)
+    }
+}
 
+func (app *GTKApp) GetSwitchStatus(switchName string) bool {
+    cSwitchName := C.CString(switchName)
+    defer C.free(unsafe.Pointer(cSwitchName))
+    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
+    if widget != nil {
+        return C.gtk_switch_get_active_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
 
+func (app *GTKApp) ConnectSwitchSignal(switchName string, callback func(bool)) {
+    cSwitchName := C.CString(switchName)
+    defer C.free(unsafe.Pointer(cSwitchName))
+    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
+    if widget == nil {
+        return
+    }
+    // Crear un ID único para este callback
+    id := fmt.Sprintf("%s::state-set", switchName)
+    cId := C.CString(id)
+    callbackMutex.Lock()
+    switchCallbacks[id] = callback
+    callbackMutex.Unlock()
+    C.g_signal_connect_data(
+        C.gpointer(widget),
+        C.CString("state-set"),
+        C.GCallback(C.go_switch_state_set_bridge),
+        C.gpointer(unsafe.Pointer(cId)),
+        C.GClosureNotify(C.free),
+        0,
+    )
+}
 
+                /* GtkComboBoxText */
 
+func (app *GTKApp) ComboBoxTextAppend(comboName, id, text string) {
+    cComboName := C.CString(comboName)
+    defer C.free(unsafe.Pointer(cComboName))
+    cId := C.CString(id)
+    defer C.free(unsafe.Pointer(cId))
+    cText := C.CString(text)
+    defer C.free(unsafe.Pointer(cText))
+    widget := C.gtk_builder_get_object(app.builder, cComboName)
+    if widget != nil {
+        C.gtk_combo_box_text_append_wrapper((*C.GObject)(widget), cId, cText)
+    }
+}
 
+func (app *GTKApp) ComboBoxTextPrepend(comboName, id, text string) {
+    cComboName := C.CString(comboName)
+    defer C.free(unsafe.Pointer(cComboName))
+    cId := C.CString(id)
+    defer C.free(unsafe.Pointer(cId))
+    cText := C.CString(text)
+    defer C.free(unsafe.Pointer(cText))
+    widget := C.gtk_builder_get_object(app.builder, cComboName)
+    if widget != nil {
+        C.gtk_combo_box_text_prepend_wrapper((*C.GObject)(widget), cId, cText)
+    }
+}
 
+func (app *GTKApp) ComboBoxTextInsert(comboName string, position int, id, text string) {
+    cComboName := C.CString(comboName)
+    defer C.free(unsafe.Pointer(cComboName))
+    cId := C.CString(id)
+    defer C.free(unsafe.Pointer(cId))
+    cText := C.CString(text)
+    defer C.free(unsafe.Pointer(cText))
+    widget := C.gtk_builder_get_object(app.builder, cComboName)
+    if widget != nil {
+        C.gtk_combo_box_text_insert_wrapper((*C.GObject)(widget), C.gint(position), cId, cText)
+    }
+}
 
+func (app *GTKApp) ComboBoxTextCleanup(comboName string) {
+    cComboName := C.CString(comboName)
+    defer C.free(unsafe.Pointer(cComboName))
+    widget := C.gtk_builder_get_object(app.builder, cComboName)
+    if widget != nil {
+        C.gtk_combo_box_text_remove_all_wrapper((*C.GObject)(widget))
+    }
+}
 
+func (app *GTKApp) ComboBoxTextSetSelected(comboName string, index int) {
+    cComboName := C.CString(comboName)
+    defer C.free(unsafe.Pointer(cComboName))
+    widget := C.gtk_builder_get_object(app.builder, cComboName)
+    if widget != nil {
+        C.gtk_combo_box_set_active_wrapper((*C.GObject)(widget), C.gint(index))
+    }
+}
 
+func (app *GTKApp) ComboBoxTextGetSelected(comboName string) int {
+    cComboName := C.CString(comboName)
+    defer C.free(unsafe.Pointer(cComboName))
+    widget := C.gtk_builder_get_object(app.builder, cComboName)
+    if widget != nil {
+        return int(C.gtk_combo_box_get_active_wrapper((*C.GObject)(widget)))
+    }
+    return -1
+}
 
+func (app *GTKApp) ComboBoxTextGetSelectedText(comboName string) string {
+    cComboName := C.CString(comboName)
+    defer C.free(unsafe.Pointer(cComboName))
 
+    widget := C.gtk_builder_get_object(app.builder, cComboName)
+    if widget != nil {
+        cText := C.gtk_combo_box_text_get_active_text_wrapper((*C.GObject)(widget))
+        return C.GoString(cText)
+    }
+    return ""
+}
 
+                /* GtkStatusbar */
 
+func (app *GTKApp) SetStatusBar(statusbarName, text string) {
+    cStatusbarName := C.CString(statusbarName)
+    defer C.free(unsafe.Pointer(cStatusbarName))
+    cText := C.CString(text)
+    defer C.free(unsafe.Pointer(cText))
+    widget := C.gtk_builder_get_object(app.builder, cStatusbarName)
+    if widget != nil {
+        C.gtk_statusbar_set_text_wrapper((*C.GObject)(widget), cText)
+    }
+}
 
+func (app *GTKApp) GetStatusBar(statusbarName string) string {
+    cStatusbarName := C.CString(statusbarName)
+    defer C.free(unsafe.Pointer(cStatusbarName))
+    widget := C.gtk_builder_get_object(app.builder, cStatusbarName)
+    if widget != nil {
+        cText := C.gtk_statusbar_get_text_wrapper((*C.GObject)(widget))
+        if cText != nil {
+            return C.GoString(cText)
+        }
+    }
+    return ""
+}
 
+                /* GtkStatusbar */
 
+func (app *GTKApp) SetImageFromFile(imageName, filename string) {
+    cImageName := C.CString(imageName)
+    defer C.free(unsafe.Pointer(cImageName))
+    cFilename := C.CString(filename)
+    defer C.free(unsafe.Pointer(cFilename))
+    image := C.gtk_builder_get_object(app.builder, cImageName)
+    if image != nil {
+        C.gtk_image_set_from_file_wrapper((*C.GObject)(image), cFilename)
+    }
+}
 
+func (app *GTKApp) SetImageFromIcon(imageName, iconName string, size int) {
+    cImageName := C.CString(imageName)
+    defer C.free(unsafe.Pointer(cImageName))
+    cIconName := C.CString(iconName)
+    defer C.free(unsafe.Pointer(cIconName))
+    image := C.gtk_builder_get_object(app.builder, cImageName)
+    if image != nil {
+        C.gtk_image_set_from_icon_name_wrapper((*C.GObject)(image), cIconName, C.int(size))
+    }
+}
 
+func (app *GTKApp) ImageCleanup(imageName string) {
+    cImageName := C.CString(imageName)
+    defer C.free(unsafe.Pointer(cImageName))
+    image := C.gtk_builder_get_object(app.builder, cImageName)
+    if image != nil {
+        C.gtk_image_clear((*C.GtkImage)(unsafe.Pointer(image)))
+    }
+}
 
+                /* GtkScale */
 
+func (app *GTKApp) SetScaleValue(scaleName string, value float64) {
+    cScaleName := C.CString(scaleName)
+    defer C.free(unsafe.Pointer(cScaleName))
+    widget := C.gtk_builder_get_object(app.builder, cScaleName)
+    if widget != nil {
+        C.gtk_scale_set_value_wrapper((*C.GObject)(widget), C.gdouble(value))
+    }
+}
 
+func (app *GTKApp) GetScaleValue(scaleName string) float64 {
+    cScaleName := C.CString(scaleName)
+    defer C.free(unsafe.Pointer(cScaleName))
+    widget := C.gtk_builder_get_object(app.builder, cScaleName)
+    if widget != nil {
+        return float64(C.gtk_scale_get_value_wrapper((*C.GObject)(widget)))
+    }
+    return 0.0
+}
 
+func (app *GTKApp) SetScaleRange(scaleName string, min, max float64) {
+    cScaleName := C.CString(scaleName)
+    defer C.free(unsafe.Pointer(cScaleName))
+    widget := C.gtk_builder_get_object(app.builder, cScaleName)
+    if widget != nil {
+        C.gtk_scale_set_range_wrapper((*C.GObject)(widget), C.gdouble(min), C.gdouble(max))
+    }
+}
 
+func (app *GTKApp) SetScaleDigits(scaleName string, digits int) {
+    cScaleName := C.CString(scaleName)
+    defer C.free(unsafe.Pointer(cScaleName))
+    widget := C.gtk_builder_get_object(app.builder, cScaleName)
+    if widget != nil {
+        C.gtk_scale_set_digits_wrapper((*C.GObject)(widget), C.gint(digits))
+    }
+}
 
+func (app *GTKApp) SetScaleDrawValue(scaleName string, show bool) {
+    cScaleName := C.CString(scaleName)
+    defer C.free(unsafe.Pointer(cScaleName))
+    var cShow C.gboolean
+    if show {
+        cShow = C.TRUE
+    } else {
+        cShow = C.FALSE
+    }
+    widget := C.gtk_builder_get_object(app.builder, cScaleName)
+    if widget != nil {
+        C.gtk_scale_set_draw_value_wrapper((*C.GObject)(widget), cShow)
+    }
+}
 
+                /* GtkTextView */
 
+func (app *GTKApp) SetTextViewText(textViewName, text string) {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+    cText := C.CString(text)
+    defer C.free(unsafe.Pointer(cText))
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        C.gtk_text_view_set_text_wrapper((*C.GObject)(widget), cText)
+    }
+}
 
+func (app *GTKApp) GetTextViewText(textViewName string) string {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        cText := C.gtk_text_view_get_text_wrapper((*C.GObject)(widget))
+        defer C.free(unsafe.Pointer(cText))
+        return C.GoString(cText)
+    }
+    return ""
+}
 
-// SetMenuItemLabel establece la etiqueta de un GtkMenuItem
+func (app *GTKApp) SetTextViewEditable(textViewName string, editable bool) {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+    var cEditable C.gboolean
+    if editable {
+        cEditable = C.TRUE
+    } else {
+        cEditable = C.FALSE
+    }
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        C.gtk_text_view_set_editable_wrapper((*C.GObject)(widget), cEditable)
+    }
+}
+
+func (app *GTKApp) GetTextViewEditable(textViewName string) bool {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        return C.gtk_text_view_get_editable_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
+
+func (app *GTKApp) SetTextViewWrapMode(textViewName string, mode string) {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+    var cMode C.GtkWrapMode
+    switch mode {
+    case "none":
+        cMode = C.GTK_WRAP_NONE
+    case "char":
+        cMode = C.GTK_WRAP_CHAR
+    case "word":
+        cMode = C.GTK_WRAP_WORD
+    case "word-char":
+        cMode = C.GTK_WRAP_WORD_CHAR
+    default:
+        cMode = C.GTK_WRAP_WORD
+    }
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        C.gtk_text_view_set_wrap_mode_wrapper((*C.GObject)(widget), cMode)
+    }
+}
+
+func (app *GTKApp) GetTextViewWrapMode(textViewName string) string {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        mode := C.gtk_text_view_get_wrap_mode_wrapper((*C.GObject)(widget))
+        switch mode {
+        case C.GTK_WRAP_NONE:
+            return "none"
+        case C.GTK_WRAP_CHAR:
+            return "char"
+        case C.GTK_WRAP_WORD:
+            return "word"
+        case C.GTK_WRAP_WORD_CHAR:
+            return "word-char"
+        }
+    }
+    return "word"
+}
+
+func (app *GTKApp) SetTextViewCursorVisible(textViewName string, visible bool) {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+    var cVisible C.gboolean
+    if visible {
+        cVisible = C.TRUE
+    } else {
+        cVisible = C.FALSE
+    }
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        C.gtk_text_view_set_cursor_visible_wrapper((*C.GObject)(widget), cVisible)
+    }
+}
+
+func (app *GTKApp) GetTextViewCursorVisible(textViewName string) bool {
+    cTextViewName := C.CString(textViewName)
+    defer C.free(unsafe.Pointer(cTextViewName))
+
+    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    if widget != nil {
+        return C.gtk_text_view_get_cursor_visible_wrapper((*C.GObject)(widget)) != 0
+    }
+    return false
+}
+
+                /* GtkMenuItem */
+
 func (app *GTKApp) SetMenuItemLabel(itemName, label string) {
 	cItemName := C.CString(itemName)
 	defer C.free(unsafe.Pointer(cItemName))
-
 	cLabel := C.CString(label)
 	defer C.free(unsafe.Pointer(cLabel))
-
 	item := C.gtk_builder_get_object(app.builder, cItemName)
 	if item != nil {
 		C.gtk_menu_item_set_label_wrapper((*C.GObject)(item), cLabel)
 	}
 }
 
-// GetMenuItemLabel obtiene la etiqueta de un GtkMenuItem
 func (app *GTKApp) GetMenuItemLabel(itemName string) string {
 	cItemName := C.CString(itemName)
 	defer C.free(unsafe.Pointer(cItemName))
-
 	item := C.gtk_builder_get_object(app.builder, cItemName)
 	if item != nil {
 		cLabel := C.gtk_menu_item_get_label_wrapper((*C.GObject)(item))
@@ -726,29 +891,27 @@ func (app *GTKApp) GetMenuItemLabel(itemName string) string {
 	return ""
 }
 
-// SetMenuItemSensitive establece la sensibilidad de un GtkMenuItem
-func (app *GTKApp) SetMenuItemSensitive(itemName string, sensitive bool) {
-	cItemName := C.CString(itemName)
-	defer C.free(unsafe.Pointer(cItemName))
-
-	var cSensitive C.gboolean
-	if sensitive {
-		cSensitive = C.TRUE
-	} else {
-		cSensitive = C.FALSE
-	}
-
-	item := C.gtk_builder_get_object(app.builder, cItemName)
-	if item != nil {
-		C.gtk_menu_item_set_sensitive_wrapper((*C.GObject)(item), cSensitive)
-	}
+func (app *GTKApp) SetMenuItemActive(itemName string) {
+    cItemName := C.CString(itemName)
+    defer C.free(unsafe.Pointer(cItemName))
+    item := C.gtk_builder_get_object(app.builder, cItemName)
+    if item != nil {
+        C.gtk_menu_item_set_sensitive_wrapper((*C.GObject)(item), C.TRUE)
+    }
 }
 
-// GetMenuItemSensitive obtiene la sensibilidad de un GtkMenuItem
-func (app *GTKApp) GetMenuItemSensitive(itemName string) bool {
+func (app *GTKApp) SetMenuItemInactive(itemName string) {
+    cItemName := C.CString(itemName)
+    defer C.free(unsafe.Pointer(cItemName))
+    item := C.gtk_builder_get_object(app.builder, cItemName)
+    if item != nil {
+        C.gtk_menu_item_set_sensitive_wrapper((*C.GObject)(item), C.FALSE)
+    }
+}
+
+func (app *GTKApp) GetMenuItemStatus(itemName string) bool {
 	cItemName := C.CString(itemName)
 	defer C.free(unsafe.Pointer(cItemName))
-
 	item := C.gtk_builder_get_object(app.builder, cItemName)
 	if item != nil {
 		return C.gtk_menu_item_get_sensitive_wrapper((*C.GObject)(item)) != 0
@@ -756,85 +919,264 @@ func (app *GTKApp) GetMenuItemSensitive(itemName string) bool {
 	return false
 }
 
+                /* GtkCheckMenuItem */
 
 func (app *GTKApp) SetCheckMenuItemChecked(itemName string) {
-    app.setCheckMenuItemState(itemName, true)
-}
-func (app *GTKApp) SetCheckMenuItemUnchecked(itemName string) {
-    app.setCheckMenuItemState(itemName, false)
-}
-
-func (app *GTKApp) setCheckMenuItemState(itemName string, active bool) {
     cItemName := C.CString(itemName)
     defer C.free(unsafe.Pointer(cItemName))
-
-    var cActive C.gboolean
-    if active {
-        cActive = C.TRUE
-    } else {
-        cActive = C.FALSE
-    }
-
     item := C.gtk_builder_get_object(app.builder, cItemName)
     if item != nil {
-        C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), cActive)
+        C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), C.TRUE)
     }
 }
 
-// SetCheckMenuItemActive establece el estado activo de un GtkCheckMenuItem
-func (app *GTKApp) SetCheckMenuItemActive(itemName string, active bool) {
-	cItemName := C.CString(itemName)
-	defer C.free(unsafe.Pointer(cItemName))
-
-	var cActive C.gboolean
-	if active {
-		cActive = C.TRUE
-	} else {
-		cActive = C.FALSE
-	}
-
-	item := C.gtk_builder_get_object(app.builder, cItemName)
-	if item != nil {
-		C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), cActive)
-	}
+func (app *GTKApp) SetCheckMenuItemUnchecked(itemName string) {
+    cItemName := C.CString(itemName)
+    defer C.free(unsafe.Pointer(cItemName))
+    item := C.gtk_builder_get_object(app.builder, cItemName)
+    if item != nil {
+        C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), C.FALSE)
+    }
 }
 
-// GetCheckMenuItemActive obtiene el estado activo de un GtkCheckMenuItem
 func (app *GTKApp) GetCheckMenuItemStatus(itemName string) bool {
-	cItemName := C.CString(itemName)
-	defer C.free(unsafe.Pointer(cItemName))
-
-	item := C.gtk_builder_get_object(app.builder, cItemName)
-	if item != nil {
-		return C.gtk_menu_item_get_active_wrapper((*C.GObject)(item)) != 0
-	}
-	return false
+    cItemName := C.CString(itemName)
+    defer C.free(unsafe.Pointer(cItemName))
+    item := C.gtk_builder_get_object(app.builder, cItemName)
+    if item != nil {
+        return C.gtk_menu_item_get_active_wrapper((*C.GObject)(item)) != 0
+    }
+    return false
 }
 
-// ToggleCheckMenuItem alterna el estado de un GtkCheckMenuItem
-func (app *GTKApp) ToggleCheckMenuItem(itemName string) {
-	currentState := app.GetCheckMenuItemStatus(itemName)
-	app.SetCheckMenuItemActive(itemName, !currentState)
+func (app *GTKApp) SetCheckMenuItemActive(itemName string) {
+    cItemName := C.CString(itemName)
+    defer C.free(unsafe.Pointer(cItemName))
+    item := C.gtk_builder_get_object(app.builder, cItemName)
+    if item != nil {
+        C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), C.TRUE)
+    }
 }
 
+func (app *GTKApp) SetCheckMenuItemInactive(itemName string) {
+    cItemName := C.CString(itemName)
+    defer C.free(unsafe.Pointer(cItemName))
+    item := C.gtk_builder_get_object(app.builder, cItemName)
+    if item != nil {
+        C.gtk_menu_item_set_active_wrapper((*C.GObject)(item), C.FALSE)
+    }
+}
 
+                /* GtkTreeView */
 
+type TableData struct {
+    Columns []string          `json:"columns"`
+    Rows    []map[string]string `json:"rows"`
+}
 
+func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
+    var data struct {
+        Columns []string            `json:"columns"`
+        Rows    []map[string]string `json:"rows"`
+    }
+    err := json.Unmarshal([]byte(jsonData), &data)
+    if err != nil {
+        return fmt.Errorf("error parsing JSON: %v", err)
+    }
+    if len(data.Columns) == 0 || len(data.Rows) == 0 {
+        return fmt.Errorf("no columns or rows in data")
+    }
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    C.gtk_tree_view_remove_all_columns(treeView)
+    nColumns := len(data.Columns)
+    cTypes := make([]C.GType, nColumns)
+    for i := range cTypes {
+        cTypes[i] = C.G_TYPE_STRING
+    }
+    store := C.gtk_list_store_new_with_columns(C.gint(nColumns), &cTypes[0])
+    if store == nil {
+        return fmt.Errorf("failed to create list store")
+    }
+    for _, row := range data.Rows {
+        cRow := make([]*C.gchar, nColumns)
+        for i, col := range data.Columns {
+            val := row[col]
+            // Convert to valid UTF-8 and replace invalid runes
+            cleanVal := strings.ToValidUTF8(val, "�")
+            cRow[i] = C.CString(cleanVal)
+            defer C.free(unsafe.Pointer(cRow[i]))
+        }
+        C.gtk_list_store_append_row(store, C.gint(nColumns), &cRow[0])
+    }
+    for i, col := range data.Columns {
+        cleanCol := strings.ToValidUTF8(col, "�")
+        cCol := C.CString(cleanCol)
+        defer C.free(unsafe.Pointer(cCol))
+        C.gtk_tree_view_append_column_with_title(treeView, cCol, C.gint(i))
+    }
+    C.gtk_tree_view_set_model(treeView, (*C.GtkTreeModel)(unsafe.Pointer(store)))
+    runtime.KeepAlive(store)
+    return nil
+}
 
+func (app *GTKApp) GetTreeViewJSON(treeViewName string) (string, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return "", fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    var nColumns, nRows C.gint
+    C.gtk_tree_view_get_model_info(treeView, &nColumns, &nRows)
+    if nColumns == 0 || nRows == 0 {
+        return "", fmt.Errorf("tree view has no data")
+    }
+    columns := make([]string, nColumns)
+    for i := 0; i < int(nColumns); i++ {
+        treeColumn := C.gtk_tree_view_get_column(treeView, C.gint(i))
+        if treeColumn == nil {
+            columns[i] = fmt.Sprintf("Column %d", i+1)
+            continue
+        }
+        cTitle := C.gtk_tree_view_column_get_title(treeColumn)
+        if cTitle != nil {
+            columns[i] = C.GoString(cTitle)
+        } else {
+            columns[i] = fmt.Sprintf("Column %d", i+1)
+        }
+    }
+    rows := make([]map[string]string, nRows)
+    for row := 0; row < int(nRows); row++ {
+        rowData := make(map[string]string)
+        for col := 0; col < int(nColumns); col++ {
+            cValue := C.gtk_tree_view_get_cell_value(treeView, C.gint(row), C.gint(col))
+            if cValue != nil {
+                rowData[columns[col]] = C.GoString(cValue)
+                C.g_free(C.gpointer(cValue))
+            } else {
+                rowData[columns[col]] = ""
+            }
+        }
+        rows[row] = rowData
+    }
+    data := TableData{
+        Columns: columns,
+        Rows:    rows,
+    }
+    jsonData, err := json.Marshal(data)
+    if err != nil {
+        return "", fmt.Errorf("error marshaling to JSON: %v", err)
+    }
+    return string(jsonData), nil
+}
 
+func (app *GTKApp) GetRowTreeViewJSON(treeViewName string, row int) (string, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return "", fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    cJson := C.gtk_tree_view_get_row_json(treeView, C.gint(row))
+    if cJson == nil {
+        return "", fmt.Errorf("failed to get row %d", row)
+    }
+    defer C.g_free(C.gpointer(cJson))
+    return C.GoString(cJson), nil
+}
 
+func (app *GTKApp) SetCellTreeViewValue(treeViewName string, row, column int, value string) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    cValue := C.CString(value)
+    defer C.free(unsafe.Pointer(cValue))
+    C.gtk_tree_view_set_cell_value(treeView, C.gint(row), C.gint(column), cValue)
+}
 
+func (app *GTKApp) SetColumnTreeViewEditable(treeViewName string, columnIndex int, editable bool) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    C.gtk_tree_view_set_column_editable(treeView, C.gint(columnIndex), C.gboolean(boolToGboolean(editable)))
+}
+func boolToGboolean(b bool) C.gboolean {
+    if b {
+        return C.gboolean(1)
+    }
+    return C.gboolean(0)
+}
 
+func (app *GTKApp) AddRowTreeView(treeViewName string) error {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    C.gtk_tree_view_add_empty_row(treeView)
+    return nil
+}
 
+func (app *GTKApp) RemoveSelectedRowTreeView(treeViewName string) (bool, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return false, fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    removed := C.gtk_tree_view_remove_selected_row(treeView)
+    return int(removed)==1, nil
+}
 
+func (app *GTKApp) ConnectTreeViewSignal(treeViewName string, callback func(row, col int, newValue string)) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    model := C.gtk_tree_view_get_model(treeView)
+    if model == nil {
+        return
+    }
+    nColumns := C.gtk_tree_model_get_n_columns(model)
+    // ID basado en el nombre del treeview
+    id := treeViewName
+    cId := C.CString(id)
+    defer C.free(unsafe.Pointer(cId))
+    callbackMutex.Lock()
+    editedCallbacks[id] = callback
+    callbackMutex.Unlock()
+    for i := 0; i < int(nColumns); i++ {
+        C.gtk_tree_view_connect_edited_signal(treeView, C.gint(i), cId)
+    }
+}
 
+                /* GtkPopover */
 
-
-// ShowPopover muestra un GtkPopover con todas las características necesarias
 func (app *GTKApp) ShowPopover(popoverName string) {
 	cPopoverName := C.CString(popoverName)
 	defer C.free(unsafe.Pointer(cPopoverName))
-
 	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
 	if popover != nil {
 		app.setPopoverVisibility(popoverName, true)
@@ -842,16 +1184,13 @@ func (app *GTKApp) ShowPopover(popoverName string) {
 	}
 }
 
-// HidePopover oculta un GtkPopover
 func (app *GTKApp) HidePopover(popoverName string) {
 	app.setPopoverVisibility(popoverName, false)
 }
 
-// SetPopoverPosition establece la posición del popover
 func (app *GTKApp) SetPopoverPosition(popoverName string, position string) {
 	cPopoverName := C.CString(popoverName)
 	defer C.free(unsafe.Pointer(cPopoverName))
-
 	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
 	if popover != nil {
 		var pos C.GtkPositionType
@@ -871,29 +1210,24 @@ func (app *GTKApp) SetPopoverPosition(popoverName string, position string) {
 	}
 }
 
-// setPopoverVisibility función interna para manejar visibilidad
 func (app *GTKApp) setPopoverVisibility(popoverName string, visible bool) {
 	cPopoverName := C.CString(popoverName)
 	defer C.free(unsafe.Pointer(cPopoverName))
-
 	var cVisible C.gboolean
 	if visible {
 		cVisible = C.TRUE
 	} else {
 		cVisible = C.FALSE
 	}
-
 	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
 	if popover != nil {
 		C.gtk_popover_set_visible_wrapper((*C.GObject)(popover), cVisible)
 	}
 }
 
-// IsPopoverVisible verifica si un popover está visible
 func (app *GTKApp) IsPopoverVisible(popoverName string) bool {
 	cPopoverName := C.CString(popoverName)
 	defer C.free(unsafe.Pointer(cPopoverName))
-
 	popover := C.gtk_builder_get_object(app.builder, cPopoverName)
 	if popover != nil {
 		return C.gtk_popover_get_visible_wrapper((*C.GObject)(popover)) != 0
@@ -901,1010 +1235,44 @@ func (app *GTKApp) IsPopoverVisible(popoverName string) bool {
 	return false
 }
 
+                /* GtkFileChooserDialog GtkApplicationWindow */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-func (app *GTKApp) SetRadioButtonActive(buttonName string) {
-    cButtonName := C.CString(buttonName)
-    defer C.free(unsafe.Pointer(cButtonName))
-
-    widget := C.gtk_builder_get_object(app.builder, cButtonName)
-    if widget != nil {
-        C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.TRUE)
+func (app *GTKApp) ShowDialog(dialogName string) {
+    cPopoverName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cPopoverName))
+    popover := C.gtk_builder_get_object(app.builder, cPopoverName)
+    if popover != nil {
+        C.connect_popover_escape_handler(popover)
+        app.ConnectSignalDirect(dialogName, "delete-event", 3, nil) // 3 representa delete-event
+        C.gtk_widget_set_visible(
+            (*C.GtkWidget)(unsafe.Pointer(popover)),
+            C.TRUE,
+        )
     }
 }
 
-// GetRadioButtonActive obtiene el estado de un GtkRadioButton
-func (app *GTKApp) GetRadioButtonActive(buttonName string) bool {
-    cButtonName := C.CString(buttonName)
-    defer C.free(unsafe.Pointer(cButtonName))
-
-    widget := C.gtk_builder_get_object(app.builder, cButtonName)
-    if widget != nil {
-        return C.gtk_toggle_button_get_active_wrapper((*C.GObject)(widget)) != 0
-    }
-    return false
+func (app *GTKApp) HideDialog(dialogName string) {
+    app.setPopoverVisibility(dialogName, false)
 }
 
-
-
-
-
-
-
-
-
-// SetEntryVisibility establece la visibilidad del texto en un GtkEntry
-func (app *GTKApp) SetEntryVisibility(entryName string, visible bool) {
-    cEntryName := C.CString(entryName)
-    defer C.free(unsafe.Pointer(cEntryName))
-
-    var cVisible C.gboolean
-    if visible {
-        cVisible = C.TRUE
-    } else {
-        cVisible = C.FALSE
-    }
-
-    widget := C.gtk_builder_get_object(app.builder, cEntryName)
-    if widget != nil {
-        C.gtk_entry_set_visibility_wrapper((*C.GObject)(widget), cVisible)
-    }
-}
-
-// GetEntryVisibility obtiene la visibilidad del texto en un GtkEntry
-func (app *GTKApp) GetEntryVisibility(entryName string) bool {
-    cEntryName := C.CString(entryName)
-    defer C.free(unsafe.Pointer(cEntryName))
-
-    widget := C.gtk_builder_get_object(app.builder, cEntryName)
-    if widget != nil {
-        return C.gtk_entry_get_visibility_wrapper((*C.GObject)(widget)) != 0
-    }
-    return false
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ComboBoxText functions
-
-// Append adds an item to the end of the combo box list
-func (app *GTKApp) ComboBoxTextAppend(comboName, id, text string) {
-    cComboName := C.CString(comboName)
-    defer C.free(unsafe.Pointer(cComboName))
-
-    cId := C.CString(id)
-    defer C.free(unsafe.Pointer(cId))
-
-    cText := C.CString(text)
-    defer C.free(unsafe.Pointer(cText))
-
-    widget := C.gtk_builder_get_object(app.builder, cComboName)
-    if widget != nil {
-        C.gtk_combo_box_text_append_wrapper((*C.GObject)(widget), cId, cText)
-    }
-}
-
-// Prepend adds an item to the beginning of the combo box list
-func (app *GTKApp) ComboBoxTextPrepend(comboName, id, text string) {
-    cComboName := C.CString(comboName)
-    defer C.free(unsafe.Pointer(cComboName))
-
-    cId := C.CString(id)
-    defer C.free(unsafe.Pointer(cId))
-
-    cText := C.CString(text)
-    defer C.free(unsafe.Pointer(cText))
-
-    widget := C.gtk_builder_get_object(app.builder, cComboName)
-    if widget != nil {
-        C.gtk_combo_box_text_prepend_wrapper((*C.GObject)(widget), cId, cText)
-    }
-}
-
-// Insert adds an item at the specified position in the combo box list
-func (app *GTKApp) ComboBoxTextInsert(comboName string, position int, id, text string) {
-    cComboName := C.CString(comboName)
-    defer C.free(unsafe.Pointer(cComboName))
-
-    cId := C.CString(id)
-    defer C.free(unsafe.Pointer(cId))
-
-    cText := C.CString(text)
-    defer C.free(unsafe.Pointer(cText))
-
-    widget := C.gtk_builder_get_object(app.builder, cComboName)
-    if widget != nil {
-        C.gtk_combo_box_text_insert_wrapper((*C.GObject)(widget), C.gint(position), cId, cText)
-    }
-}
-
-// RemoveAll removes all items from the combo box
-func (app *GTKApp) ComboBoxTextRemoveAll(comboName string) {
-    cComboName := C.CString(comboName)
-    defer C.free(unsafe.Pointer(cComboName))
-
-    widget := C.gtk_builder_get_object(app.builder, cComboName)
-    if widget != nil {
-        C.gtk_combo_box_text_remove_all_wrapper((*C.GObject)(widget))
-    }
-}
-
-// SetActive sets the active item in the combo box by index
-func (app *GTKApp) ComboBoxSetActive(comboName string, index int) {
-    cComboName := C.CString(comboName)
-    defer C.free(unsafe.Pointer(cComboName))
-
-    widget := C.gtk_builder_get_object(app.builder, cComboName)
-    if widget != nil {
-        C.gtk_combo_box_set_active_wrapper((*C.GObject)(widget), C.gint(index))
-    }
-}
-
-// GetActive returns the index of the active item in the combo box
-func (app *GTKApp) ComboBoxGetActive(comboName string) int {
-    cComboName := C.CString(comboName)
-    defer C.free(unsafe.Pointer(cComboName))
-
-    widget := C.gtk_builder_get_object(app.builder, cComboName)
-    if widget != nil {
-        return int(C.gtk_combo_box_get_active_wrapper((*C.GObject)(widget)))
-    }
-    return -1
-}
-
-// GetActiveText returns the text of the currently active item
-func (app *GTKApp) ComboBoxTextGetActiveText(comboName string) string {
-    cComboName := C.CString(comboName)
-    defer C.free(unsafe.Pointer(cComboName))
-
-    widget := C.gtk_builder_get_object(app.builder, cComboName)
-    if widget != nil {
-        cText := C.gtk_combo_box_text_get_active_text_wrapper((*C.GObject)(widget))
-        return C.GoString(cText)
-    }
-    return ""
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// SetSwitchActive activa un GtkSwitch
-func (app *GTKApp) SetSwitchActive(switchName string) {
-    cSwitchName := C.CString(switchName)
-    defer C.free(unsafe.Pointer(cSwitchName))
-
-    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
-    if widget != nil {
-        C.gtk_switch_set_active_wrapper((*C.GObject)(widget), C.TRUE)
-    }
-}
-
-// SetSwitchInactive desactiva un GtkSwitch
-func (app *GTKApp) SetSwitchInactive(switchName string) {
-    cSwitchName := C.CString(switchName)
-    defer C.free(unsafe.Pointer(cSwitchName))
-
-    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
-    if widget != nil {
-        C.gtk_switch_set_active_wrapper((*C.GObject)(widget), C.FALSE)
-    }
-}
-
-// GetSwitchActive obtiene el estado de un GtkSwitch
-func (app *GTKApp) GetSwitchActive(switchName string) bool {
-    cSwitchName := C.CString(switchName)
-    defer C.free(unsafe.Pointer(cSwitchName))
-
-    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
-    if widget != nil {
-        return C.gtk_switch_get_active_wrapper((*C.GObject)(widget)) != 0
-    }
-    return false
-}
-
-// ToggleSwitch alterna el estado de un GtkSwitch
-func (app *GTKApp) ToggleSwitch(switchName string) {
-    if app.GetSwitchActive(switchName) {
-        app.SetSwitchInactive(switchName)
-    } else {
-        app.SetSwitchActive(switchName)
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ScaleSetValue establece el valor de un GtkScale
-func (app *GTKApp) ScaleSetValue(scaleName string, value float64) {
-    cScaleName := C.CString(scaleName)
-    defer C.free(unsafe.Pointer(cScaleName))
-
-    widget := C.gtk_builder_get_object(app.builder, cScaleName)
-    if widget != nil {
-        C.gtk_scale_set_value_wrapper((*C.GObject)(widget), C.gdouble(value))
-    }
-}
-
-// ScaleGetValue obtiene el valor actual de un GtkScale
-func (app *GTKApp) ScaleGetValue(scaleName string) float64 {
-    cScaleName := C.CString(scaleName)
-    defer C.free(unsafe.Pointer(cScaleName))
-
-    widget := C.gtk_builder_get_object(app.builder, cScaleName)
-    if widget != nil {
-        return float64(C.gtk_scale_get_value_wrapper((*C.GObject)(widget)))
-    }
-    return 0.0
-}
-
-// ScaleSetRange establece el rango mínimo y máximo de un GtkScale
-func (app *GTKApp) ScaleSetRange(scaleName string, min, max float64) {
-    cScaleName := C.CString(scaleName)
-    defer C.free(unsafe.Pointer(cScaleName))
-
-    widget := C.gtk_builder_get_object(app.builder, cScaleName)
-    if widget != nil {
-        C.gtk_scale_set_range_wrapper((*C.GObject)(widget), C.gdouble(min), C.gdouble(max))
-    }
-}
-
-// ScaleSetDigits establece el número de decimales a mostrar
-func (app *GTKApp) ScaleSetDigits(scaleName string, digits int) {
-    cScaleName := C.CString(scaleName)
-    defer C.free(unsafe.Pointer(cScaleName))
-
-    widget := C.gtk_builder_get_object(app.builder, cScaleName)
-    if widget != nil {
-        C.gtk_scale_set_digits_wrapper((*C.GObject)(widget), C.gint(digits))
-    }
-}
-
-// ScaleSetDrawValue controla si se muestra el valor numérico
-func (app *GTKApp) ScaleSetDrawValue(scaleName string, show bool) {
-    cScaleName := C.CString(scaleName)
-    defer C.free(unsafe.Pointer(cScaleName))
-
-    var cShow C.gboolean
-    if show {
-        cShow = C.TRUE
-    } else {
-        cShow = C.FALSE
-    }
-
-    widget := C.gtk_builder_get_object(app.builder, cScaleName)
-    if widget != nil {
-        C.gtk_scale_set_draw_value_wrapper((*C.GObject)(widget), cShow)
-    }
-}
-
-
-
-
-// ConnectSwitchSignal conecta una señal de GtkSwitch con un callback que recibe el estado
-func (app *GTKApp) ConnectSwitchSignal(switchName string, callback func(bool)) {
-    cSwitchName := C.CString(switchName)
-    defer C.free(unsafe.Pointer(cSwitchName))
-
-    widget := C.gtk_builder_get_object(app.builder, cSwitchName)
-    if widget == nil {
-        return
-    }
-
-    // Crear un ID único para este callback
-    id := fmt.Sprintf("%s::state-set", switchName)
-    cId := C.CString(id)
-    
+func (app *GTKApp) OnHideDialog(dialogName string, callback func()) {
     callbackMutex.Lock()
-    switchCallbacks[id] = callback
+    hideDialogCallbacks[dialogName] = callback
     callbackMutex.Unlock()
-
-    C.g_signal_connect_data(
-        C.gpointer(widget),
-        C.CString("state-set"),
-        C.GCallback(C.go_switch_state_set_bridge),
-        C.gpointer(unsafe.Pointer(cId)),
-        C.GClosureNotify(C.free),
-        0,
-    )
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// SetTextViewText establece el texto de un GtkTextView
-func (app *GTKApp) SetTextViewText(textViewName, text string) {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
-
-    cText := C.CString(text)
-    defer C.free(unsafe.Pointer(cText))
-
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
+    cDialogName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cDialogName))
+    widget := C.gtk_builder_get_object(app.builder, cDialogName)
     if widget != nil {
-        C.gtk_text_view_set_text_wrapper((*C.GObject)(widget), cText)
+        // Usamos ConnectSignalDirect para conectar la señal "hide"
+        app.ConnectSignalDirect(dialogName, "hide", 2, nil) // 2 representa la señal hide
     }
 }
 
-// GetTextViewText obtiene el texto de un GtkTextView
-func (app *GTKApp) GetTextViewText(textViewName string) string {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
+                /* GtkFileChooserDialog */
 
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
-    if widget != nil {
-        cText := C.gtk_text_view_get_text_wrapper((*C.GObject)(widget))
-        defer C.free(unsafe.Pointer(cText))
-        return C.GoString(cText)
-    }
-    return ""
-}
-
-// SetTextViewEditable establece si un GtkTextView es editable
-func (app *GTKApp) SetTextViewEditable(textViewName string, editable bool) {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
-
-    var cEditable C.gboolean
-    if editable {
-        cEditable = C.TRUE
-    } else {
-        cEditable = C.FALSE
-    }
-
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
-    if widget != nil {
-        C.gtk_text_view_set_editable_wrapper((*C.GObject)(widget), cEditable)
-    }
-}
-
-// GetTextViewEditable obtiene si un GtkTextView es editable
-func (app *GTKApp) GetTextViewEditable(textViewName string) bool {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
-    if widget != nil {
-        return C.gtk_text_view_get_editable_wrapper((*C.GObject)(widget)) != 0
-    }
-    return false
-}
-
-// SetTextViewWrapMode establece el modo de ajuste de texto
-func (app *GTKApp) SetTextViewWrapMode(textViewName string, mode string) {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
-
-    var cMode C.GtkWrapMode
-    switch mode {
-    case "none":
-        cMode = C.GTK_WRAP_NONE
-    case "char":
-        cMode = C.GTK_WRAP_CHAR
-    case "word":
-        cMode = C.GTK_WRAP_WORD
-    case "word-char":
-        cMode = C.GTK_WRAP_WORD_CHAR
-    default:
-        cMode = C.GTK_WRAP_WORD
-    }
-
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
-    if widget != nil {
-        C.gtk_text_view_set_wrap_mode_wrapper((*C.GObject)(widget), cMode)
-    }
-}
-
-// GetTextViewWrapMode obtiene el modo de ajuste de texto
-func (app *GTKApp) GetTextViewWrapMode(textViewName string) string {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
-    if widget != nil {
-        mode := C.gtk_text_view_get_wrap_mode_wrapper((*C.GObject)(widget))
-        switch mode {
-        case C.GTK_WRAP_NONE:
-            return "none"
-        case C.GTK_WRAP_CHAR:
-            return "char"
-        case C.GTK_WRAP_WORD:
-            return "word"
-        case C.GTK_WRAP_WORD_CHAR:
-            return "word-char"
-        }
-    }
-    return "word"
-}
-
-// SetTextViewCursorVisible establece la visibilidad del cursor
-func (app *GTKApp) SetTextViewCursorVisible(textViewName string, visible bool) {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
-
-    var cVisible C.gboolean
-    if visible {
-        cVisible = C.TRUE
-    } else {
-        cVisible = C.FALSE
-    }
-
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
-    if widget != nil {
-        C.gtk_text_view_set_cursor_visible_wrapper((*C.GObject)(widget), cVisible)
-    }
-}
-
-// GetTextViewCursorVisible obtiene la visibilidad del cursor
-func (app *GTKApp) GetTextViewCursorVisible(textViewName string) bool {
-    cTextViewName := C.CString(textViewName)
-    defer C.free(unsafe.Pointer(cTextViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTextViewName)
-    if widget != nil {
-        return C.gtk_text_view_get_cursor_visible_wrapper((*C.GObject)(widget)) != 0
-    }
-    return false
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-type TableData struct {
-    Columns []string          `json:"columns"`
-    Rows    []map[string]string `json:"rows"`
-}
-
-func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
-    // Parse JSON data
-    var data struct {
-        Columns []string            `json:"columns"`
-        Rows    []map[string]string `json:"rows"`
-    }
-    err := json.Unmarshal([]byte(jsonData), &data)
-    if err != nil {
-        return fmt.Errorf("error parsing JSON: %v", err)
-    }
-
-    if len(data.Columns) == 0 || len(data.Rows) == 0 {
-        return fmt.Errorf("no columns or rows in data")
-    }
-
-    // Get the tree view widget
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return fmt.Errorf("widget '%s' not found", treeViewName)
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    // Remove existing columns
-    C.gtk_tree_view_remove_all_columns(treeView)
-
-    // Create column types (all strings)
-    nColumns := len(data.Columns)
-    cTypes := make([]C.GType, nColumns)
-    for i := range cTypes {
-        cTypes[i] = C.G_TYPE_STRING
-    }
-
-    // Create list store
-    store := C.gtk_list_store_new_with_columns(C.gint(nColumns), &cTypes[0])
-    if store == nil {
-        return fmt.Errorf("failed to create list store")
-    }
-
-    // Add data rows
-    for _, row := range data.Rows {
-        // Prepare row values
-        cRow := make([]*C.gchar, nColumns)
-        for i, col := range data.Columns {
-            val := row[col]
-            // Convert to valid UTF-8 and replace invalid runes
-            cleanVal := strings.ToValidUTF8(val, "�")
-            cRow[i] = C.CString(cleanVal)
-            defer C.free(unsafe.Pointer(cRow[i]))
-        }
-
-        C.gtk_list_store_append_row(store, C.gint(nColumns), &cRow[0])
-    }
-
-    // Add columns to tree view
-    for i, col := range data.Columns {
-        cleanCol := strings.ToValidUTF8(col, "�")
-        cCol := C.CString(cleanCol)
-        defer C.free(unsafe.Pointer(cCol))
-        C.gtk_tree_view_append_column_with_title(treeView, cCol, C.gint(i))
-    }
-
-    // Set the model
-    C.gtk_tree_view_set_model(treeView, (*C.GtkTreeModel)(unsafe.Pointer(store)))
-
-    // Keep the store reference
-    runtime.KeepAlive(store)
-
-    return nil
-}
-
-
-
-
-// GetTreeViewJSON obtiene los datos de un TreeView y los devuelve como JSON string
-func (app *GTKApp) GetTreeViewJSON(treeViewName string) (string, error) {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return "", fmt.Errorf("widget '%s' not found", treeViewName)
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    // Obtener información del modelo
-    var nColumns, nRows C.gint
-    C.gtk_tree_view_get_model_info(treeView, &nColumns, &nRows)
-    
-    if nColumns == 0 || nRows == 0 {
-        return "", fmt.Errorf("tree view has no data")
-    }
-
-    // Obtener nombres de columnas
-    columns := make([]string, nColumns)
-    for i := 0; i < int(nColumns); i++ {
-        // Obtener la columna del TreeView
-        treeColumn := C.gtk_tree_view_get_column(treeView, C.gint(i))
-        if treeColumn == nil {
-            columns[i] = fmt.Sprintf("Column %d", i+1)
-            continue
-        }
-        
-        // Obtener el título de la columna
-        cTitle := C.gtk_tree_view_column_get_title(treeColumn)
-        if cTitle != nil {
-            columns[i] = C.GoString(cTitle)
-        } else {
-            columns[i] = fmt.Sprintf("Column %d", i+1)
-        }
-    }
-
-    // Obtener datos de las filas
-    rows := make([]map[string]string, nRows)
-    for row := 0; row < int(nRows); row++ {
-        rowData := make(map[string]string)
-        for col := 0; col < int(nColumns); col++ {
-            cValue := C.gtk_tree_view_get_cell_value(treeView, C.gint(row), C.gint(col))
-            if cValue != nil {
-                rowData[columns[col]] = C.GoString(cValue)
-                C.g_free(C.gpointer(cValue))
-            } else {
-                rowData[columns[col]] = ""
-            }
-        }
-        rows[row] = rowData
-    }
-
-    // Crear estructura TableData y convertir a JSON
-    data := TableData{
-        Columns: columns,
-        Rows:    rows,
-    }
-
-    jsonData, err := json.Marshal(data)
-    if err != nil {
-        return "", fmt.Errorf("error marshaling to JSON: %v", err)
-    }
-
-    return string(jsonData), nil
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ... (código existente)
-
-// SetColumnEditable hace editable una columna específica del TreeView
-func (app *GTKApp) SetColumnEditable(treeViewName string, columnIndex int, editable bool) {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    C.gtk_tree_view_set_column_editable(treeView, C.gint(columnIndex), C.gboolean(boolToGboolean(editable)))
-}
-
-
-func (app *GTKApp) ConnectEditedSignal(treeViewName string, callback func(row, col int, newValue string)) {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    // Obtener el número de columnas del modelo directamente
-    model := C.gtk_tree_view_get_model(treeView)
-    if model == nil {
-        return
-    }
-    nColumns := C.gtk_tree_model_get_n_columns(model)
-
-    // ID basado en el nombre del treeview
-    id := treeViewName
-    cId := C.CString(id)
-    defer C.free(unsafe.Pointer(cId))
-
-    callbackMutex.Lock()
-    editedCallbacks[id] = callback
-    callbackMutex.Unlock()
-
-    // Conectar la señal para todas las columnas editables
-    for i := 0; i < int(nColumns); i++ {
-        C.gtk_tree_view_connect_edited_signal(treeView, C.gint(i), cId)
-    }
-}
-
-// SetCellValue actualiza el valor de una celda específica
-func (app *GTKApp) SetCellValue(treeViewName string, row, column int, value string) {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    cValue := C.CString(value)
-    defer C.free(unsafe.Pointer(cValue))
-
-    C.gtk_tree_view_set_cell_value(treeView, C.gint(row), C.gint(column), cValue)
-}
-
-// Helper function to convert Go bool to C gboolean
-func boolToGboolean(b bool) C.gboolean {
-    if b {
-        return C.gboolean(1)
-    }
-    return C.gboolean(0)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// GetRow obtiene una fila específica del TreeView como string JSON
-func (app *GTKApp) GetRow(treeViewName string, row int) (string, error) {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return "", fmt.Errorf("widget '%s' not found", treeViewName)
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    cJson := C.gtk_tree_view_get_row_json(treeView, C.gint(row))
-    if cJson == nil {
-        return "", fmt.Errorf("failed to get row %d", row)
-    }
-    defer C.g_free(C.gpointer(cJson))
-
-    return C.GoString(cJson), nil
-}
-
-// Agregar esta función en tabla.go
-func (app *GTKApp) AddEmptyRow(treeViewName string) error {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return fmt.Errorf("widget '%s' not found", treeViewName)
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    C.gtk_tree_view_add_empty_row(treeView)
-    return nil
-}
-
-// Agregar esta función en tabla.go
-func (app *GTKApp) RemoveSelectedRow(treeViewName string) (bool, error) {
-    cTreeViewName := C.CString(treeViewName)
-    defer C.free(unsafe.Pointer(cTreeViewName))
-
-    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
-    if widget == nil {
-        return false, fmt.Errorf("widget '%s' not found", treeViewName)
-    }
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
-
-    removed := C.gtk_tree_view_remove_selected_row(treeView)
-    return int(removed)==1, nil
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// SetStatusBar establece el texto en la barra de estado
-func (app *GTKApp) SetStatusBar(statusbarName, text string) {
-    cStatusbarName := C.CString(statusbarName)
-    defer C.free(unsafe.Pointer(cStatusbarName))
-
-    cText := C.CString(text)
-    defer C.free(unsafe.Pointer(cText))
-
-    widget := C.gtk_builder_get_object(app.builder, cStatusbarName)
-    if widget != nil {
-        C.gtk_statusbar_set_text_wrapper((*C.GObject)(widget), cText)
-    }
-}
-
-// GetStatusBar obtiene el texto actual de la barra de estado
-func (app *GTKApp) GetStatusBar(statusbarName string) string {
-    cStatusbarName := C.CString(statusbarName)
-    defer C.free(unsafe.Pointer(cStatusbarName))
-
-    widget := C.gtk_builder_get_object(app.builder, cStatusbarName)
-    if widget != nil {
-        cText := C.gtk_statusbar_get_text_wrapper((*C.GObject)(widget))
-        if cText != nil {
-            return C.GoString(cText)
-        }
-    }
-    return ""
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// GetSelectedFilePath obtiene la ruta completa del archivo seleccionado en un FileChooserDialog
 func (app *GTKApp) GetSelectedFilePath(dialogName string) string {
     cDialogName := C.CString(dialogName)
     defer C.free(unsafe.Pointer(cDialogName))
-
     dialog := C.gtk_builder_get_object(app.builder, cDialogName)
     if dialog != nil {
         cPath := C.gtk_file_chooser_get_filename_wrapper((*C.GObject)(dialog))
@@ -1914,101 +1282,13 @@ func (app *GTKApp) GetSelectedFilePath(dialogName string) string {
     return ""
 }
 
-// SetCurrentFolder establece el directorio inicial para un FileChooserDialog
 func (app *GTKApp) SetCurrentFolder(dialogName, folderPath string) {
     cDialogName := C.CString(dialogName)
     defer C.free(unsafe.Pointer(cDialogName))
-
     cFolderPath := C.CString(folderPath)
     defer C.free(unsafe.Pointer(cFolderPath))
-
     dialog := C.gtk_builder_get_object(app.builder, cDialogName)
     if dialog != nil {
         C.gtk_file_chooser_set_current_folder_wrapper((*C.GObject)(dialog), cFolderPath)
     }
-}
-
-/*func (app *GTKApp) ShowDialog(dialogName string) {
-    cPopoverName := C.CString(dialogName)
-    defer C.free(unsafe.Pointer(cPopoverName))
-
-    popover := C.gtk_builder_get_object(app.builder, cPopoverName)
-    if popover != nil {
-        // Conectar el manejador de ESC (solo una vez)
-        C.connect_popover_escape_handler(popover)
-        C.gtk_widget_set_visible(
-            (*C.GtkWidget)(unsafe.Pointer(popover)),
-            C.TRUE,
-        )
-    }
-}*/
-
-func (app *GTKApp) ShowDialog(dialogName string) {
-    cPopoverName := C.CString(dialogName)
-    defer C.free(unsafe.Pointer(cPopoverName))
-
-    popover := C.gtk_builder_get_object(app.builder, cPopoverName)
-    if popover != nil {
-        // Conectar el manejador de ESC (solo una vez)
-        C.connect_popover_escape_handler(popover)
-        
-        // Conectar el manejador para el botón de cerrar (X)
-        app.ConnectSignalDirect(dialogName, "delete-event", 3, nil) // 3 representa delete-event
-        
-        C.gtk_widget_set_visible(
-            (*C.GtkWidget)(unsafe.Pointer(popover)),
-            C.TRUE,
-        )
-    }
-}
-
-func (app *GTKApp) HideDialog(dialogName string) {
-	app.setPopoverVisibility(dialogName, false)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-// OnHideDialog registra una función que se ejecutará cuando el diálogo se oculte
-func (app *GTKApp) OnHideDialog(dialogName string, callback func()) {
-    callbackMutex.Lock()
-    hideDialogCallbacks[dialogName] = callback
-    callbackMutex.Unlock()
-    
-    // Conectar la señal de "hide" si no está ya conectada
-    cDialogName := C.CString(dialogName)
-    defer C.free(unsafe.Pointer(cDialogName))
-    
-    widget := C.gtk_builder_get_object(app.builder, cDialogName)
-    if widget != nil {
-        // Usamos ConnectSignalDirect para conectar la señal "hide"
-        app.ConnectSignalDirect(dialogName, "hide", 2, nil) // 2 representa la señal hide
-    }
-}
-
-
-
-
-
-
-
-// Show muestra la ventana principal
-func (app *GTKApp) Show(window unsafe.Pointer) {
-    gtkwidget := (*C.GtkWidget)(window)
-    C.gtk_widget_show(gtkwidget)
-}
-
-// Hide oculta la ventana principal
-func (app *GTKApp) Hide(window unsafe.Pointer) {
-    gtkwidget := (*C.GtkWidget)(window)
-    C.gtk_widget_hide(gtkwidget)
 }
