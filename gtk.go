@@ -111,6 +111,7 @@ import (
 	"strconv"
     "math"
 
+    "time"
     "io"
     "archive/zip"
     "net/http"
@@ -186,111 +187,198 @@ func goCallbackProxy(data unsafe.Pointer) {
 }    
 
 
-func downloadAndExtract(repoURL string) error {
-    // Derivar nombre de repo
+func processRepo(repoURL string) {
     parts := strings.Split(repoURL, "/")
     repoName := parts[len(parts)-1]
-    branch := "main"
-    zipURL := fmt.Sprintf("%s/archive/refs/heads/%s.zip", repoURL, branch)
-    zipPath := fmt.Sprintf("%s.zip", repoName)
+    
+    fmt.Printf("\n[%s] Procesando repositorio\n", repoName)
+    
+    // Paso 1: Descargar el ZIP
+    zipFile := repoName + ".zip"
+    if err := downloadFile(repoURL+"/archive/main.zip", zipFile); err != nil {
+        fmt.Printf("[%s] Error en descarga: %v\n", repoName, err)
+        return
+    }
+    defer os.Remove(zipFile)
 
-    // Descargar ZIP
-    resp, err := http.Get(zipURL)
+    // Paso 2: Extraer el ZIP
+    if err := extractZip(zipFile, repoName); err != nil {
+        fmt.Printf("[%s] Error en extracción: %v\n", repoName, err)
+        return
+    }
+
+    // Paso 3: Corregir estructura en Windows
+    fixWindowsStructure(repoName)
+    
+    fmt.Printf("[%s] ✓ Completado con éxito\n", repoName)
+}
+
+func downloadFile(url, dest string) error {
+    fmt.Printf("  ↓ Descargando archivo...\n")
+    
+    // Configurar timeout para la descarga
+    client := &http.Client{
+        Timeout: 5 * time.Minute,
+    }
+
+    resp, err := client.Get(url)
     if err != nil {
-        return fmt.Errorf("error descargando ZIP: %w", err)
+        return fmt.Errorf("error al conectar: %w", err)
     }
     defer resp.Body.Close()
 
-    out, err := os.Create(zipPath)
+    if resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("código de estado: %d", resp.StatusCode)
+    }
+
+    out, err := os.Create(dest)
     if err != nil {
-        return fmt.Errorf("error creando archivo ZIP: %w", err)
+        return fmt.Errorf("no se pudo crear archivo: %w", err)
     }
     defer out.Close()
 
+    // Mostrar progreso de descarga
     _, err = io.Copy(out, resp.Body)
     if err != nil {
-        return fmt.Errorf("error guardando ZIP: %w", err)
+        return fmt.Errorf("error al guardar: %w", err)
     }
 
-    // Extraer ZIP
-    reader, err := zip.OpenReader(zipPath)
-    if err != nil {
-        return fmt.Errorf("error abriendo ZIP: %w", err)
-    }
-    defer reader.Close()
-
-    prefix := repoName + "-main" + string(filepath.Separator) // ej: "etc-main/"
-    for _, file := range reader.File {
-        // Reemplazar prefijo para quitar "-main"
-        fname := file.Name
-        if strings.HasPrefix(fname, prefix) {
-            fname = strings.TrimPrefix(fname, prefix)
-        }
-        fpath := filepath.Join(repoName, fname) // extraemos dentro de carpeta sin "-main"
-
-        if file.FileInfo().IsDir() {
-            os.MkdirAll(fpath, os.ModePerm)
-            continue
-        }
-
-        if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-            return err
-        }
-
-        in, err := file.Open()
-        if err != nil {
-            return err
-        }
-        defer in.Close()
-
-        out, err := os.Create(fpath)
-        if err != nil {
-            return err
-        }
-        defer out.Close()
-
-        _, err = io.Copy(out, in)
-        if err != nil {
-            return err
-        }
-    }
-
-    // Eliminar ZIP
-    os.Remove(zipPath)
     return nil
 }
 
+func extractZip(zipFile, destDir string) error {
+    fmt.Printf("  ↻ Extrayendo archivos...\n")
+    
+    r, err := zip.OpenReader(zipFile)
+    if err != nil {
+        return fmt.Errorf("no se pudo abrir el ZIP: %w", err)
+    }
+    defer r.Close()
+
+    // Crear directorio destino si no existe
+    if err := os.MkdirAll(destDir, 0755); err != nil {
+        return fmt.Errorf("no se pudo crear directorio: %w", err)
+    }
+
+    // Extraer cada archivo
+    for _, f := range r.File {
+        // Saltar directorios vacíos
+        if f.FileInfo().IsDir() {
+            continue
+        }
+
+        // Construir ruta destino
+        destPath := filepath.Join(destDir, strings.TrimPrefix(f.Name, filepath.Base(zipFile[:len(zipFile)-4]+"/")))
+
+        // Crear directorios necesarios
+        if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+            return fmt.Errorf("no se pudo crear directorio para %s: %w", destPath, err)
+        }
+
+        // Extraer archivo
+        if err := extractFile(f, destPath); err != nil {
+            return fmt.Errorf("error al extraer %s: %w", f.Name, err)
+        }
+    }
+
+    return nil
+}
+
+func extractFile(f *zip.File, dest string) error {
+    rc, err := f.Open()
+    if err != nil {
+        return err
+    }
+    defer rc.Close()
+
+    out, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+    if err != nil {
+        return err
+    }
+    defer out.Close()
+
+    _, err = io.Copy(out, rc)
+    return err
+}
+
+func fixWindowsStructure(repoName string) {
+    // Buscar subcarpetas con -main
+    files, err := os.ReadDir(repoName)
+    if err != nil {
+        return
+    }
+
+    for _, f := range files {
+        if f.IsDir() && strings.HasSuffix(f.Name(), "-main") {
+            src := filepath.Join(repoName, f.Name())
+            fmt.Printf("  ! Detectada estructura Windows en %s\n", src)
+            
+            // Mover contenido al directorio principal
+            moveContent(src, repoName)
+            // Eliminar directorio vacío
+            os.Remove(src)
+        }
+    }
+}
+
+func moveContent(src, dest string) {
+    files, err := os.ReadDir(src)
+    if err != nil {
+        return
+    }
+
+    for _, f := range files {
+        oldPath := filepath.Join(src, f.Name())
+        newPath := filepath.Join(dest, f.Name())
+        
+        // Intentar renombrar primero
+        if err := os.Rename(oldPath, newPath); err != nil {
+            // Si falla, copiar y eliminar
+            copyFile(oldPath, newPath)
+            os.RemoveAll(oldPath)
+        }
+    }
+}
+
+func copyFile(src, dst string) error {
+    in, err := os.Open(src)
+    if err != nil {
+        return err
+    }
+    defer in.Close()
+
+    out, err := os.Create(dst)
+    if err != nil {
+        return err
+    }
+    defer out.Close()
+
+    _, err = io.Copy(out, in)
+    return err
+}
+
 func cloneRepositories() {
-    fmt.Println("Descargando dependencias")
     repos := []string{
         "https://github.com/IngenieroRicardo/etc",
         "https://github.com/IngenieroRicardo/lib",
         "https://github.com/IngenieroRicardo/share",
     }
 
+    fmt.Println("Iniciando descarga de dependencias...")
+    start := time.Now()
+
     for _, repo := range repos {
-        // Obtener nombre repo (última parte URL)
-        parts := strings.Split(repo, "/")
-        repoName := parts[len(parts)-1]
-
-        // Verificar si carpeta existe
-        if _, err := os.Stat(repoName); err == nil {
-            fmt.Printf("La carpeta %s ya existe. No se descarga.\n", repoName)
-            continue
-        }
-
-        err := downloadAndExtract(repo)
-        if err != nil {
-            fmt.Printf("Error descargando %s: %s\n", repo, err)
-        } else {
-            fmt.Printf("Repositorio descargado y extraído: %s\n", repo)
-        }
+        processRepo(repo)
     }
+
+    fmt.Printf("\nProceso completado en %v\n", time.Since(start).Round(time.Second))
 }
 
 
 func NewGTKApp() *GTKApp {
-    cloneRepositories()
+    if runtime.GOOS == "windows" {
+        cloneRepositories()
+    }
 	C.gtk_init(nil, nil)
 	return &GTKApp{}
 }
