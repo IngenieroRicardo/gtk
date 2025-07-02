@@ -2,7 +2,7 @@
 
 | BSD/Linux | MXE |
 | --- | --- |
-| `go build -o main.bin main.go` | `git clone https://github.com/mxe/mxe.git` |
+| `go build main.go` | `git clone https://github.com/mxe/mxe.git` |
 |  | `cd mxe` |
 |  | `make gtk3 -j 8 MXE_TARGETS='x86_64-w64-mingw32.static'` |
 |  | `cd ..` |
