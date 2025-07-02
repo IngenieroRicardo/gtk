@@ -110,6 +110,12 @@ import (
 	"runtime"
 	"strconv"
     "math"
+
+    "io"
+    "archive/zip"
+    "net/http"
+    "os"
+    "path/filepath"
 )
 
 var (
@@ -179,7 +185,112 @@ func goCallbackProxy(data unsafe.Pointer) {
     }
 }    
 
+
+func downloadAndExtract(repoURL string) error {
+    // Derivar nombre de repo
+    parts := strings.Split(repoURL, "/")
+    repoName := parts[len(parts)-1]
+    branch := "main"
+    zipURL := fmt.Sprintf("%s/archive/refs/heads/%s.zip", repoURL, branch)
+    zipPath := fmt.Sprintf("%s.zip", repoName)
+
+    // Descargar ZIP
+    resp, err := http.Get(zipURL)
+    if err != nil {
+        return fmt.Errorf("error descargando ZIP: %w", err)
+    }
+    defer resp.Body.Close()
+
+    out, err := os.Create(zipPath)
+    if err != nil {
+        return fmt.Errorf("error creando archivo ZIP: %w", err)
+    }
+    defer out.Close()
+
+    _, err = io.Copy(out, resp.Body)
+    if err != nil {
+        return fmt.Errorf("error guardando ZIP: %w", err)
+    }
+
+    // Extraer ZIP
+    reader, err := zip.OpenReader(zipPath)
+    if err != nil {
+        return fmt.Errorf("error abriendo ZIP: %w", err)
+    }
+    defer reader.Close()
+
+    prefix := repoName + "-main" + string(filepath.Separator) // ej: "etc-main/"
+    for _, file := range reader.File {
+        // Reemplazar prefijo para quitar "-main"
+        fname := file.Name
+        if strings.HasPrefix(fname, prefix) {
+            fname = strings.TrimPrefix(fname, prefix)
+        }
+        fpath := filepath.Join(repoName, fname) // extraemos dentro de carpeta sin "-main"
+
+        if file.FileInfo().IsDir() {
+            os.MkdirAll(fpath, os.ModePerm)
+            continue
+        }
+
+        if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+            return err
+        }
+
+        in, err := file.Open()
+        if err != nil {
+            return err
+        }
+        defer in.Close()
+
+        out, err := os.Create(fpath)
+        if err != nil {
+            return err
+        }
+        defer out.Close()
+
+        _, err = io.Copy(out, in)
+        if err != nil {
+            return err
+        }
+    }
+
+    // Eliminar ZIP
+    os.Remove(zipPath)
+    return nil
+}
+
+func cloneRepositories() {
+    fmt.Println("Descargando dependencias")
+    repos := []string{
+        "https://github.com/IngenieroRicardo/etc",
+        "https://github.com/IngenieroRicardo/lib",
+        "https://github.com/IngenieroRicardo/share",
+    }
+
+    for _, repo := range repos {
+        // Obtener nombre repo (última parte URL)
+        parts := strings.Split(repo, "/")
+        repoName := parts[len(parts)-1]
+
+        // Verificar si carpeta existe
+        if _, err := os.Stat(repoName); err == nil {
+            fmt.Printf("La carpeta %s ya existe. No se descarga.\n", repoName)
+            continue
+        }
+
+        err := downloadAndExtract(repo)
+        if err != nil {
+            fmt.Printf("Error descargando %s: %s\n", repo, err)
+        } else {
+            fmt.Printf("Repositorio descargado y extraído: %s\n", repo)
+        }
+    }
+}
+
+
 func NewGTKApp() *GTKApp {
+    cloneRepositories()
 	C.gtk_init(nil, nil)
 	return &GTKApp{}
 }
