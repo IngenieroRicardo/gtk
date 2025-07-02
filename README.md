@@ -1,6 +1,3 @@
-# gtk
-Libreria Golang para usar GTK C
-
 ### 🛠️ Compilar
 
 | BSD/Linux | MXE |
