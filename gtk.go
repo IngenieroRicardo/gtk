@@ -357,6 +357,29 @@ func copyFile(src, dst string) error {
     return err
 }
 
+func checkExistingRepos(repos []string) []string {
+    var existing []string
+    for _, repo := range repos {
+        parts := strings.Split(repo, "/")
+        repoName := parts[len(parts)-1]
+        
+        if _, err := os.Stat(repoName); err == nil {
+            fmt.Printf("[%s] ✓ Ya existe\n", repoName)
+            existing = append(existing, repo)
+        }
+    }
+    return existing
+}
+
+func contains(slice []string, item string) bool {
+    for _, s := range slice {
+        if s == item {
+            return true
+        }
+    }
+    return false
+}
+
 func cloneRepositories() {
     repos := []string{
         "https://github.com/IngenieroRicardo/etc",
@@ -367,9 +390,20 @@ func cloneRepositories() {
     fmt.Println("Iniciando descarga de dependencias...")
     start := time.Now()
 
-    for _, repo := range repos {
-        processRepo(repo)
+
+    existingRepos := checkExistingRepos(repos)
+    
+    if len(existingRepos) == len(repos) {
+        fmt.Println("\n✓ Todas las dependencias ya están instaladas")
+    } else {
+        // Procesar solo los repositorios faltantes
+        for _, repo := range repos {
+            if !contains(existingRepos, repo) {
+                processRepo(repo)
+            }
+        }
     }
+
 
     fmt.Printf("\nProceso completado en %v\n", time.Since(start).Round(time.Second))
 }
