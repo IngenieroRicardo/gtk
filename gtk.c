@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <gtk/gtkspinner.h> 
 #include <stdlib.h>
+#include <glib-object.h>
 
 extern void goCallbackProxy(gpointer data);
 
@@ -499,4 +500,13 @@ void gtk_spinner_start_wrapper(GObject *spinner) {
 
 void gtk_spinner_stop_wrapper(GObject *spinner) {
     gtk_spinner_stop(GTK_SPINNER(spinner));
+}
+
+
+const gchar* get_object_class_name(GObject *object) {
+    if (object == NULL) {
+        return NULL;
+    }
+    GType gtype = G_OBJECT_TYPE(object);
+    return g_type_name(gtype);
 }

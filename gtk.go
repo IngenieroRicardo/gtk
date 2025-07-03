@@ -4,6 +4,7 @@ package gtk
 #cgo pkg-config: gtk+-3.0
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <glib-object.h>
 
 extern void goCallbackProxy(gpointer data);
 extern void go_callback_bridge(GtkWidget *widget, gpointer data);
@@ -95,9 +96,10 @@ extern gboolean on_delete_event(GtkWidget *widget, GdkEvent *event, gpointer use
 extern void gtk_image_set_from_file_wrapper(GObject *image, const gchar *filename);
 extern void gtk_image_set_from_icon_name_wrapper(GObject *image, const gchar *icon_name, int size);
 
-
 extern void gtk_spinner_start_wrapper(GObject *spinner);
 extern void gtk_spinner_stop_wrapper(GObject *spinner);
+
+extern const gchar* get_object_class_name(GObject *object);
 */
 import "C"
 import (
@@ -1591,4 +1593,25 @@ func (app *GTKApp) StopSpinner(spinnerName string) {
     if spinner != nil {
         C.gtk_spinner_stop_wrapper((*C.GObject)(spinner))
     }
+}
+
+
+
+
+// GetObjectClass returns the GTK class name (type) of a widget as a string
+func (app *GTKApp) GetObjectClass(widgetName string) string {
+    cWidgetName := C.CString(widgetName)
+    defer C.free(unsafe.Pointer(cWidgetName))
+
+    widget := C.gtk_builder_get_object(app.builder, cWidgetName)
+    if widget == nil {
+        return ""
+    }
+
+    className := C.get_object_class_name((*C.GObject)(widget))
+    if className == nil {
+        return ""
+    }
+    
+    return C.GoString(className)
 }
