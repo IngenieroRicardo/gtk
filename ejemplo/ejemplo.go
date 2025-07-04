@@ -254,7 +254,7 @@ func main() {
 		},
 	)
 	app.ConnectTreeViewSignal("treeview_main", func(row, col int, newValue string) {
-		rowStr, err := app.GetRowTreeViewJSON("treeview_main", row)
+	    rowStr, err := app.GetRowTreeViewJSON("treeview_main", row)
 	    if err != nil {
 	        app.SetStatusBar("statusbar_main", "Celda editada: fila="+strconv.Itoa(row)+", col="+strconv.Itoa(col)+", nuevo valor="+newValue)
 	    } else {
