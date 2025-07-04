@@ -10,7 +10,7 @@ Este proyecto proporciona un **binding personalizado** entre Go y GTK+ 3 usando
 
 ### Requisitos
 
-- **Go** ≥ 1.17  
+- **Go** ≥ 1.24.1  
 - **GTK+ 3** y herramientas asociadas (`pkg-config`, compiladores C/C++)
 - Sistema compatible con `cgo`
 
@@ -50,50 +50,14 @@ GO_LDFLAGS="-luuid" PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1 PKG_CONFIG_ALLOW_SYSTEM_LIB
 
 ## ⚙️ Compilación
 
-Para compilar la aplicación principal en sistemas Unix (Linux, macOS):
+Para compilar la aplicación principal en sistemas Unix (Linux, macOS, FreeBSD):
 
 ```bash
-go build main.go
+cd ejemplo
+go build ejemplo.go
 ```
 
 Después de instalar dependencias, esto generará un ejecutable listo para usar.
-
----
-
-## 🚀 Cómo usarlo
-
-Primero, importa el paquete:
-
-```go
-import (
-  "runtime"
-  "gtk"
-)
-
-func main() {
-  runtime.LockOSThread() // GTK requiere el hilo principal bloqueado
-
-  // Inicialización del builder, conexión de señales, etc.
-}
-```
-
-### Ejemplos útiles
-
-#### Configurar y leer un GtkEntry
-
-```go
-gtk.SetEntryText("txtNombre", "Juan Pérez")
-nombre := gtk.GetEntryText("txtNombre")
-fmt.Println("Nombre:", nombre)
-```
-
-#### Conectar una señal a un botón
-
-```go
-gtk.ConnectCallback("btnAceptar", func() {
-  fmt.Println("Botón Aceptar presionado")
-})
-```
 
 ---
 
@@ -104,7 +68,7 @@ gtk.ConnectCallback("btnAceptar", func() {
 - Manipulación de propiedades: visibilidad, sensibilidad, texto, estado activo, selección, etc.
 - Gestión de `GtkTreeView` editable con exportación de datos a JSON.
 - Wrapper en C (`gtk.c`) e integración `cgo` (`gtk.go`) con manejo seguro de callbacks usando `sync.Mutex`.
-- Utilidades adicionales: descarga y extracción ZIP, corrección de rutas en Windows.
+- Utilidades adicionales: descarga y extracción ZIP, corrección de rutas y dependencias en Windows.
 
 ---
 
@@ -114,7 +78,7 @@ gtk.ConnectCallback("btnAceptar", func() {
 |---------------|-------------|
 | `gtk.go`      | Wrappers en Go para GTK+ 3, conversión de tipos y lógica de callbacks |
 | `gtk.c`       | Envoltorios en C que usan la API de GTK para exponerla a Go |
-| `main.go`     | Ejemplo de uso e inicialización de la interfaz gráfica |
+| `ejemplo/ejemplo.go`     | Ejemplo de uso e inicialización de la interfaz gráfica |
 
 ---
 
@@ -139,17 +103,3 @@ Distribuido bajo la **MIT License**. Consulta el archivo `LICENSE` para más det
 - Ampliar soporte para más widgets y señales.
 
 ---
-
-## ✅ Resumen rápido
-
-```bash
-# Requisitos
-sudo apt install glade pkgconf gcc libgtk-3-dev
-
-# Compilar
-go build main.go
-
-# Ejecutar
-./main
-```
-
