@@ -241,11 +241,11 @@ func main() {
 		"clicked",
 		func() {
 			app.SetupTreeView("treeview_main", `{
-													"columns": ["Name", "Value", "Active"],
-												    "rows": [
-												        {"Name": "", "Value": "", "Active": ""}
-												    ]
-												}
+								"columns": ["Name", "Value", "Active"],
+								"rows": [
+									{"Name": "", "Value": "", "Active": ""}
+								]
+							    }
 			`)
 			app.SetColumnTreeViewEditable("treeview_main", 0, true)
 			app.SetColumnTreeViewEditable("treeview_main", 1, true)
