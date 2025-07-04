@@ -97,19 +97,19 @@ func main() {
 	/* GtkSwitch y GtkSpinner */
 	app.SetSwitchActive("switch_notifications")
 	app.ConnectSwitchSignal("switch_notifications", func(active bool) {
-        if active {
-            app.StartSpinner("spinner_main")
-        } else {
-            app.StopSpinner("spinner_main")
-        }
-    })
+		if active {
+			app.StartSpinner("spinner_main")
+		} else {
+			app.StopSpinner("spinner_main")
+		}
+	})
 
 
-    /* GtkScale y GtkProgressBar */
-    app.SetProgressBarValue("progressbar_main", 0.2)
+	/* GtkScale y GtkProgressBar */
+	app.SetProgressBarValue("progressbar_main", 0.2)
 	app.SetProgressBarDrawValue("progressbar_main", true)
 
-    app.SetScaleRange("scale_volume", 0.0, 1.0)
+	app.SetScaleRange("scale_volume", 0.0, 1.0)
 	app.SetScaleDrawValue("scale_volume", true)
 	app.SetScaleValue("scale_volume", 0.95)
 	app.ConnectSignal("scale_volume", "value-changed", func() {
