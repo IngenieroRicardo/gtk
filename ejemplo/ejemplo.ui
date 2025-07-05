@@ -547,18 +547,6 @@
                             <property name="homogeneous">True</property>
                           </packing>
                         </child>
-                        <child>
-                          <object class="GtkToolButton" id="button_limpiar">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Limpiar</property>
-                            <property name="use-underline">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="homogeneous">True</property>
-                          </packing>
-                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>

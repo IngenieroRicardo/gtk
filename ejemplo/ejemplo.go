@@ -236,23 +236,6 @@ func main() {
 			app.SetStatusBar("statusbar_main", "Se elimino una fila en la tabla")
 		},
 	)
-	app.ConnectSignal(
-		"button_limpiar",
-		"clicked",
-		func() {
-			app.SetupTreeView("treeview_main", `{
-								"columns": ["Name", "Value", "Active"],
-								"rows": [
-									{"Name": "", "Value": "", "Active": ""}
-								]
-							    }
-			`)
-			app.SetColumnTreeViewEditable("treeview_main", 0, true)
-			app.SetColumnTreeViewEditable("treeview_main", 1, true)
-			app.SetColumnTreeViewEditable("treeview_main", 2, true)
-			app.SetStatusBar("statusbar_main", "Se limpio la tabla")
-		},
-	)
 	app.ConnectTreeViewSignal("treeview_main", func(row, col int, newValue string) {
 	    rowStr, err := app.GetRowTreeViewJSON("treeview_main", row)
 	    if err != nil {
