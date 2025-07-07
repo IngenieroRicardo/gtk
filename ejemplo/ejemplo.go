@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	gui "ejemplo/gtk" 
+	gui "github.com/IngenieroRicardo/gtk" 
 )
 
 func main() {
