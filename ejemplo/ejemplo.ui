@@ -2,6 +2,28 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.0"/>
+  <!-- Agregar después del button_limpiar -->
+  <object class="GtkPopover" id="popover_limpiar">
+    <property name="relative-to">button_limpiar</property>
+    <property name="position">bottom</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">¿Estás seguro de limpiar?</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="popover_btn_confirmar">
+            <property name="label">Confirmar</property>
+            <signal name="clicked" handler="on_limpiar_confirmado"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkApplicationWindow" id="dialog1">
     <property name="can-focus">False</property>
     <child>

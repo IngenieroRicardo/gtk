@@ -240,6 +240,14 @@ func main() {
 		"button_limpiar",
 		"clicked",
 		func() {
+			app.ShowPopover("popover_limpiar")
+			
+		},
+	)
+	app.ConnectSignal(
+		"popover_btn_confirmar",
+		"clicked",
+		func() {
 			app.CleanTreeView("treeview_main")
 
 			//Agregar Filas mediante un JSON:
@@ -251,10 +259,11 @@ func main() {
 			if err != nil {
 			    fmt.Println("Error:", err)
 			}*/
-
+			app.HidePopover("popover_limpiar")
 			app.SetStatusBar("statusbar_main", "Se limpio la tabla")
 		},
 	)
+	
 	app.ConnectTreeViewSignal("treeview_main", func(row, col int, newValue string) {
 		rowStr, err := app.GetRowTreeViewJSON("treeview_main", row)
 	    if err != nil {
