@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	gui "github.com/IngenieroRicardo/gtk" 
+	gui "ejemplo/gtk" 
 )
 
 func main() {
@@ -97,19 +97,19 @@ func main() {
 	/* GtkSwitch y GtkSpinner */
 	app.SetSwitchActive("switch_notifications")
 	app.ConnectSwitchSignal("switch_notifications", func(active bool) {
-		if active {
-			app.StartSpinner("spinner_main")
-		} else {
-			app.StopSpinner("spinner_main")
-		}
-	})
+        if active {
+            app.StartSpinner("spinner_main")
+        } else {
+            app.StopSpinner("spinner_main")
+        }
+    })
 
 
-	/* GtkScale y GtkProgressBar */
-	app.SetProgressBarValue("progressbar_main", 0.2)
+    /* GtkScale y GtkProgressBar */
+    app.SetProgressBarValue("progressbar_main", 0.2)
 	app.SetProgressBarDrawValue("progressbar_main", true)
 
-	app.SetScaleRange("scale_volume", 0.0, 1.0)
+    app.SetScaleRange("scale_volume", 0.0, 1.0)
 	app.SetScaleDrawValue("scale_volume", true)
 	app.SetScaleValue("scale_volume", 0.95)
 	app.ConnectSignal("scale_volume", "value-changed", func() {
@@ -236,8 +236,27 @@ func main() {
 			app.SetStatusBar("statusbar_main", "Se elimino una fila en la tabla")
 		},
 	)
+	app.ConnectSignal(
+		"button_limpiar",
+		"clicked",
+		func() {
+			app.CleanTreeView("treeview_main")
+
+			//Agregar Filas mediante un JSON:
+			/*jsonRows := `[
+			    {"Name": "nuevo_item", "Value": "valor_ejemplo", "Active": "true"},
+			    {"Name": "otro_item", "Value": "otro_valor", "Active": "false"}
+			]`
+			err := app.AppendRowsTreeViewJSON("treeview_main", jsonRows)
+			if err != nil {
+			    fmt.Println("Error:", err)
+			}*/
+
+			app.SetStatusBar("statusbar_main", "Se limpio la tabla")
+		},
+	)
 	app.ConnectTreeViewSignal("treeview_main", func(row, col int, newValue string) {
-	    rowStr, err := app.GetRowTreeViewJSON("treeview_main", row)
+		rowStr, err := app.GetRowTreeViewJSON("treeview_main", row)
 	    if err != nil {
 	        app.SetStatusBar("statusbar_main", "Celda editada: fila="+strconv.Itoa(row)+", col="+strconv.Itoa(col)+", nuevo valor="+newValue)
 	    } else {
