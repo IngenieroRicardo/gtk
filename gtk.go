@@ -1214,6 +1214,28 @@ type TableData struct {
     Rows    []map[string]string `json:"rows"`
 }
 
+func (app *GTKApp) CleanTreeView(treeViewName string) error {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    model := C.gtk_tree_view_get_model(treeView)
+    if model == nil {
+        return fmt.Errorf("could not get model for tree view")
+    }
+    nRows := C.gtk_tree_model_iter_n_children(model, nil)
+    for i := int(nRows) - 1; i >= 0; i-- {
+        _, err := app.RemoveRowTreeView(treeViewName, i)
+        if err != nil {
+            return fmt.Errorf("error removing row %d: %v", i, err)
+        }
+    }
+    return nil
+}
+
 func (app *GTKApp) SetupTreeView(treeViewName, jsonData string) error {
     var data struct {
         Columns []string            `json:"columns"`
@@ -1356,12 +1378,6 @@ func (app *GTKApp) SetColumnTreeViewEditable(treeViewName string, columnIndex in
     treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
     C.gtk_tree_view_set_column_editable(treeView, C.gint(columnIndex), C.gboolean(boolToGboolean(editable)))
 }
-func boolToGboolean(b bool) C.gboolean {
-    if b {
-        return C.gboolean(1)
-    }
-    return C.gboolean(0)
-}
 
 func (app *GTKApp) AddRowTreeView(treeViewName string) error {
     cTreeViewName := C.CString(treeViewName)
@@ -1374,6 +1390,54 @@ func (app *GTKApp) AddRowTreeView(treeViewName string) error {
     C.gtk_tree_view_add_empty_row(treeView)
     return nil
 }
+
+func (app *GTKApp) AppendRowsTreeViewJSON(treeViewName string, jsonData string) error {
+    var rows []map[string]string
+    if err := json.Unmarshal([]byte(jsonData), &rows); err != nil {
+        return fmt.Errorf("error parsing JSON: %v", err)
+    }
+    for _, row := range rows {
+        // Agregar nueva fila vacía
+        if err := app.AddRowTreeView(treeViewName); err != nil {
+            return fmt.Errorf("error adding row: %v", err)
+        }
+        lastRowIndex, err := app.getTreeViewRowCount(treeViewName)
+        if err != nil {
+            return err
+        }
+        lastRowIndex-- // El índice es base 0
+        for colName, val := range row {
+            colIdx := app.getColumnIndex(treeViewName, colName)
+            if colIdx >= 0 {
+                app.SetCellTreeViewValue(treeViewName, lastRowIndex, colIdx, val)
+            }
+        }
+    }
+    return nil
+}
+
+func (app *GTKApp) RemoveRowTreeView(treeViewName string, rowIndex int) (bool, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return false, fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    model := C.gtk_tree_view_get_model(treeView)
+    if model == nil {
+        return false, fmt.Errorf("could not get model for tree view")
+    }
+    listStore := (*C.GtkListStore)(unsafe.Pointer(model))
+    var iter C.GtkTreeIter
+    if C.gtk_tree_model_iter_nth_child(model, &iter, nil, C.gint(rowIndex)) == 0 {
+        return false, fmt.Errorf("row index %d out of bounds", rowIndex)
+    }
+    success := C.gtk_list_store_remove(listStore, &iter)
+    return success != 0, nil
+}
+
+
 
 func (app *GTKApp) RemoveSelectedRowTreeView(treeViewName string) (bool, error) {
     cTreeViewName := C.CString(treeViewName)
@@ -1410,6 +1474,49 @@ func (app *GTKApp) ConnectTreeViewSignal(treeViewName string, callback func(row,
     for i := 0; i < int(nColumns); i++ {
         C.gtk_tree_view_connect_edited_signal(treeView, C.gint(i), cId)
     }
+}
+
+func boolToGboolean(b bool) C.gboolean {
+    if b {
+        return C.gboolean(1)
+    }
+    return C.gboolean(0)
+}
+
+func (app *GTKApp) getColumnIndex(treeViewName, colName string) int {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return -1
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    nColumns := C.gtk_tree_view_get_n_columns(treeView)
+    for i := 0; i < int(nColumns); i++ {
+        column := C.gtk_tree_view_get_column(treeView, C.gint(i))
+        if column != nil {
+            cTitle := C.gtk_tree_view_column_get_title(column)
+            if cTitle != nil && C.GoString(cTitle) == colName {
+                return i
+            }
+        }
+    }
+    return -1
+}
+
+func (app *GTKApp) getTreeViewRowCount(treeViewName string) (int, error) {
+    cTreeViewName := C.CString(treeViewName)
+    defer C.free(unsafe.Pointer(cTreeViewName))
+    widget := C.gtk_builder_get_object(app.builder, cTreeViewName)
+    if widget == nil {
+        return 0, fmt.Errorf("widget '%s' not found", treeViewName)
+    }
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(widget))
+    model := C.gtk_tree_view_get_model(treeView)
+    if model == nil {
+        return 0, fmt.Errorf("could not get model for tree view")
+    }
+    return int(C.gtk_tree_model_iter_n_children(model, nil)), nil
 }
 
                 /* GtkProgressBar */
@@ -1615,3 +1722,4 @@ func (app *GTKApp) GetObjectClass(widgetName string) string {
     
     return C.GoString(className)
 }
+
