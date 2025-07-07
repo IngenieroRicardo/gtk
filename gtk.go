@@ -111,14 +111,13 @@ import (
 	"encoding/json"
 	"runtime"
 	"strconv"
-    "math"
-
-    "time"
-    "io"
-    "archive/zip"
-    "net/http"
-    "os"
-    "path/filepath"
+	"math"
+	"time"
+	"io"
+	"archive/zip"
+	"net/http"
+	"os"
+	"path/filepath"
 )
 
 var (
@@ -309,7 +308,6 @@ func fixWindowsStructure(repoName string) {
     if err != nil {
         return
     }
-
     for _, f := range files {
         if f.IsDir() && strings.HasSuffix(f.Name(), "-main") {
             src := filepath.Join(repoName, f.Name())
@@ -328,7 +326,6 @@ func moveContent(src, dest string) {
     if err != nil {
         return
     }
-
     for _, f := range files {
         oldPath := filepath.Join(src, f.Name())
         newPath := filepath.Join(dest, f.Name())
@@ -348,13 +345,11 @@ func copyFile(src, dst string) error {
         return err
     }
     defer in.Close()
-
     out, err := os.Create(dst)
     if err != nil {
         return err
     }
     defer out.Close()
-
     _, err = io.Copy(out, in)
     return err
 }
@@ -364,7 +359,6 @@ func checkExistingRepos(repos []string) []string {
     for _, repo := range repos {
         parts := strings.Split(repo, "/")
         repoName := parts[len(parts)-1]
-        
         if _, err := os.Stat(repoName); err == nil {
             fmt.Printf("[%s] ✓ Ya existe\n", repoName)
             existing = append(existing, repo)
@@ -391,10 +385,7 @@ func cloneRepositories() {
 
     fmt.Println("Iniciando descarga de dependencias...")
     start := time.Now()
-
-
     existingRepos := checkExistingRepos(repos)
-    
     if len(existingRepos) == len(repos) {
         fmt.Println("\n✓ Todas las dependencias ya están instaladas")
     } else {
@@ -405,8 +396,6 @@ func cloneRepositories() {
             }
         }
     }
-
-
     fmt.Printf("\nProceso completado en %v\n", time.Since(start).Round(time.Second))
 }
 
@@ -415,8 +404,8 @@ func NewGTKApp() *GTKApp {
     if runtime.GOOS == "windows" {
         cloneRepositories()
     }
-	C.gtk_init(nil, nil)
-	return &GTKApp{}
+    C.gtk_init(nil, nil)
+    return &GTKApp{}
 }
 
 func (app *GTKApp) LoadUI(filename string) error {
@@ -545,7 +534,6 @@ func (app *GTKApp) SetLabelText(widgetName, text string) {
 func (app *GTKApp) GetLabelText(widgetName string) string {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget != nil {
         cText := C.gtk_label_get_text_wrapper((*C.GObject)(widget))
@@ -581,14 +569,12 @@ func (app *GTKApp) GetEntryText(widgetName string) string {
 func (app *GTKApp) SetEntryVisibility(entryName string, visible bool) {
     cEntryName := C.CString(entryName)
     defer C.free(unsafe.Pointer(cEntryName))
-
     var cVisible C.gboolean
     if visible {
         cVisible = C.TRUE
     } else {
         cVisible = C.FALSE
     }
-
     widget := C.gtk_builder_get_object(app.builder, cEntryName)
     if widget != nil {
         C.gtk_entry_set_visibility_wrapper((*C.GObject)(widget), cVisible)
@@ -598,7 +584,6 @@ func (app *GTKApp) SetEntryVisibility(entryName string, visible bool) {
 func (app *GTKApp) GetEntryVisibility(entryName string) bool {
     cEntryName := C.CString(entryName)
     defer C.free(unsafe.Pointer(cEntryName))
-
     widget := C.gtk_builder_get_object(app.builder, cEntryName)
     if widget != nil {
         return C.gtk_entry_get_visibility_wrapper((*C.GObject)(widget)) != 0
@@ -693,7 +678,6 @@ func (app *GTKApp) GetCheckButtonStatus(widgetName string) bool {
 func (app *GTKApp) SetToggleButtonActive(widgetName string) {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget != nil {
         C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.TRUE)
@@ -703,7 +687,6 @@ func (app *GTKApp) SetToggleButtonActive(widgetName string) {
 func (app *GTKApp) SetToggleButtonInactive(widgetName string) {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget != nil {
         C.gtk_toggle_button_set_active_wrapper((*C.GObject)(widget), C.FALSE)
@@ -713,7 +696,6 @@ func (app *GTKApp) SetToggleButtonInactive(widgetName string) {
 func (app *GTKApp) GetToggleButtonStatus(widgetName string) bool {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget != nil {
         return C.gtk_toggle_button_get_active_wrapper((*C.GObject)(widget)) != 0
@@ -867,7 +849,6 @@ func (app *GTKApp) ComboBoxTextGetSelected(comboName string) int {
 func (app *GTKApp) ComboBoxTextGetSelectedText(comboName string) string {
     cComboName := C.CString(comboName)
     defer C.free(unsafe.Pointer(cComboName))
-
     widget := C.gtk_builder_get_object(app.builder, cComboName)
     if widget != nil {
         cText := C.gtk_combo_box_text_get_active_text_wrapper((*C.GObject)(widget))
@@ -1709,17 +1690,13 @@ func (app *GTKApp) StopSpinner(spinnerName string) {
 func (app *GTKApp) GetObjectClass(widgetName string) string {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))
-
     widget := C.gtk_builder_get_object(app.builder, cWidgetName)
     if widget == nil {
         return ""
     }
-
     className := C.get_object_class_name((*C.GObject)(widget))
     if className == nil {
         return ""
     }
-    
     return C.GoString(className)
 }
-
