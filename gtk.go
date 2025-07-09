@@ -112,6 +112,7 @@ extern void gtk_tree_view_set_path(GObject *tree_view, const gchar *path);
 extern void goTreeItemDoubleClick(gpointer data);
 extern void gtk_tree_view_refresh(GObject *tree_view);
 extern void gtk_tree_view_go_back(GObject *tree_view);
+extern gchar* gtk_tree_view_get_current_path(GObject *tree_view);
 
 */
 import "C"
@@ -142,6 +143,7 @@ var (
     editedCallbacks = make(map[string]func(row, col int, newValue string))
     clipboardText string
     clipboardMutex sync.Mutex
+    treeDoubleClickCallback func(name, path, fileType string)
 )
 
 type GTKApp struct {
@@ -1516,42 +1518,25 @@ func (app *GTKApp) getTreeViewRowCount(treeViewName string) (int, error) {
 }
 
 
-
                 /* GtkTreeView - JSON */
 
-
-
-//export goSetClipboardText
-func goSetClipboardText(text unsafe.Pointer) {
-    clipboardMutex.Lock()
-    defer clipboardMutex.Unlock()
-    clipboardText = C.GoString((*C.char)(text))
-}
-
-
-// TreeViewWrapper representa columnas fijas: Key, Type, Value
 func (app *GTKApp) LoadJSONTree(treeName string, jsonData string) error {
     cTreeName := C.CString(treeName)
     defer C.free(unsafe.Pointer(cTreeName))
-    
-    // Obtener el TreeView
     obj := C.gtk_builder_get_object(app.builder, cTreeName)
     if obj == nil {
         return fmt.Errorf("treeview '%s' no encontrado", treeName)
     }
     treeView := (*C.GtkTreeView)(unsafe.Pointer(obj))
-
     // Limpiar el modelo existente
     currentModel := C.gtk_tree_view_get_model(treeView)
     if currentModel != nil {
         C.gtk_tree_store_clear((*C.GtkTreeStore)(unsafe.Pointer(currentModel)))
     } else {
-        // Crear nuevo modelo si no existe
         columnTypes := []C.GType{C.G_TYPE_STRING, C.G_TYPE_STRING, C.G_TYPE_STRING}
         store := C.gtk_tree_store_newv(C.gint(len(columnTypes)), &columnTypes[0])
         C.gtk_tree_view_set_model(treeView, (*C.GtkTreeModel)(unsafe.Pointer(store)))
         C.g_object_unref(C.gpointer(unsafe.Pointer(store)))
-        
         // Configurar columnas solo si es la primera vez
         renderer := C.gtk_cell_renderer_text_new()
         columns := []string{"Key", "Type", "Value"}
@@ -1565,17 +1550,14 @@ func (app *GTKApp) LoadJSONTree(treeName string, jsonData string) error {
             C.gtk_tree_view_append_column(treeView, column)
         }
     }
-
     // Parsear y cargar el nuevo JSON
     var data interface{}
     if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
         return err
     }
-
     currentModel = C.gtk_tree_view_get_model(treeView)
     if currentModel != nil {
         app.fillTree((*C.GtkTreeStore)(unsafe.Pointer(currentModel)), nil, data)
-
         // Configurar selección
         selection := C.gtk_tree_view_get_selection(treeView)
         C.g_signal_connect_data(
@@ -1586,17 +1568,38 @@ func (app *GTKApp) LoadJSONTree(treeName string, jsonData string) error {
             nil,
             0,
         )
-        
         // Configurar menú contextual
         app.setupTreeViewContextMenu(treeName)
     }
-
-    
-
     return nil
 }
 
-// Helper function to fill the tree store
+func (app *GTKApp) ExpandAll(treeName string) {
+    cTreeName := C.CString(treeName)
+    defer C.free(unsafe.Pointer(cTreeName))
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
+    if treeView != nil {
+        C.gtk_tree_view_expand_all(treeView)
+    }
+}
+
+func (app *GTKApp) CollapseAll(treeName string) {
+    cTreeName := C.CString(treeName)
+    defer C.free(unsafe.Pointer(cTreeName))
+    
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
+    if treeView != nil {
+        C.gtk_tree_view_collapse_all(treeView)
+    }
+}
+
+//export goSetClipboardText
+func goSetClipboardText(text unsafe.Pointer) {
+    clipboardMutex.Lock()
+    defer clipboardMutex.Unlock()
+    clipboardText = C.GoString((*C.char)(text))
+}
+
 func (app *GTKApp) fillTree(store *C.GtkTreeStore, parent *C.GtkTreeIter, value interface{}) {
     switch val := value.(type) {
     case map[string]interface{}:
@@ -1612,26 +1615,21 @@ func (app *GTKApp) fillTree(store *C.GtkTreeStore, parent *C.GtkTreeIter, value 
     }
 }
 
-// Helper function to add a row to the tree store
 func (app *GTKApp) addTreeRow(store *C.GtkTreeStore, parent *C.GtkTreeIter, key, typ, val string) *C.GtkTreeIter {
     var iter C.GtkTreeIter
     C.gtk_tree_store_append(store, &iter, parent)
-
     cKey := C.CString(key)
     cTyp := C.CString(typ)
     cVal := C.CString(val)
     defer C.free(unsafe.Pointer(cKey))
     defer C.free(unsafe.Pointer(cTyp))
     defer C.free(unsafe.Pointer(cVal))
-
     C.tree_store_set_string(store, &iter, 0, cKey)
     C.tree_store_set_string(store, &iter, 1, cTyp)
     C.tree_store_set_string(store, &iter, 2, cVal)
-
     return &iter
 }
 
-// Helper function to get type name
 func (app *GTKApp) getTypeName(v interface{}) string {
     if v == nil {
         return "null"
@@ -1652,7 +1650,6 @@ func (app *GTKApp) getTypeName(v interface{}) string {
     }
 }
 
-// Helper function to get string value
 func (app *GTKApp) getStringValue(v interface{}) string {
     switch val := v.(type) {
     case map[string]interface{}, []interface{}:
@@ -1664,35 +1661,20 @@ func (app *GTKApp) getStringValue(v interface{}) string {
     }
 }
 
-
-
-
-
-
-
-
-
-
-// Añade esta función para configurar el menú contextual
 func (app *GTKApp) setupTreeViewContextMenu(treeName string) {
     cTreeName := C.CString(treeName)
     defer C.free(unsafe.Pointer(cTreeName))
-    
     treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
     if treeView == nil {
         return
     }
-
     // Crear menú contextual
     menu := C.gtk_menu_new()
     menuShell := (*C.GtkMenuShell)(unsafe.Pointer(menu))
-    
     // Añadir item "Copiar"
     copyItem := C.gtk_menu_item_new_with_label(C.CString("Copiar Value Seleccionado"))
     C.gtk_menu_shell_append(menuShell, copyItem)
     C.gtk_widget_show(copyItem)
-
-    
     // Conectar señal del menú
     cId := C.CString(treeName + "::copy")
     C.g_signal_connect_data(
@@ -1703,7 +1685,6 @@ func (app *GTKApp) setupTreeViewContextMenu(treeName string) {
         nil,
         0,
     )
-    
     // Registrar callback
     callbackMutex.Lock()
     callbacks[treeName + "::copy"] = func() {
@@ -1721,7 +1702,6 @@ func (app *GTKApp) setupTreeViewContextMenu(treeName string) {
         }
     }
     callbackMutex.Unlock()
-    
     // Conectar señal de botón derecho
     C.g_signal_connect_data(
         C.gpointer(treeView),
@@ -1731,30 +1711,21 @@ func (app *GTKApp) setupTreeViewContextMenu(treeName string) {
         nil,
         0,
     )
-
-
-
-
-
     // Añadir separador
     separator := C.gtk_separator_menu_item_new()
     C.gtk_menu_shell_append(menuShell, separator)
     C.gtk_widget_show(separator)
-    
     // Añadir item "Expandir todo"
     expandItem := C.gtk_menu_item_new_with_label(C.CString("Expandir todo"))
     C.gtk_menu_shell_append(menuShell, expandItem)
     C.gtk_widget_show(expandItem)
-    
     // Añadir item "Colapsar todo"
     collapseItem := C.gtk_menu_item_new_with_label(C.CString("Colapsar todo"))
     C.gtk_menu_shell_append(menuShell, collapseItem)
     C.gtk_widget_show(collapseItem)
-    
     // Conectar señales
     expandId := C.CString(treeName + "::expand_all")
     collapseId := C.CString(treeName + "::collapse_all")
-    
     C.g_signal_connect_data(
         C.gpointer(expandItem),
         C.CString("activate"),
@@ -1763,7 +1734,6 @@ func (app *GTKApp) setupTreeViewContextMenu(treeName string) {
         nil,
         0,
     )
-    
     C.g_signal_connect_data(
         C.gpointer(collapseItem),
         C.CString("activate"),
@@ -1772,7 +1742,6 @@ func (app *GTKApp) setupTreeViewContextMenu(treeName string) {
         nil,
         0,
     )
-    
     // Registrar callbacks
     callbackMutex.Lock()
     callbacks[treeName + "::expand_all"] = func() {
@@ -1785,35 +1754,8 @@ func (app *GTKApp) setupTreeViewContextMenu(treeName string) {
 }
 
 
-
-
-
-// Añade estas funciones al struct GTKApp
-func (app *GTKApp) ExpandAll(treeName string) {
-    cTreeName := C.CString(treeName)
-    defer C.free(unsafe.Pointer(cTreeName))
-    
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
-    if treeView != nil {
-        C.gtk_tree_view_expand_all(treeView)
-    }
-}
-
-func (app *GTKApp) CollapseAll(treeName string) {
-    cTreeName := C.CString(treeName)
-    defer C.free(unsafe.Pointer(cTreeName))
-    
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
-    if treeView != nil {
-        C.gtk_tree_view_collapse_all(treeView)
-    }
-}
-
-
-
                 /* GtkTreeView - FILE */
 
-//SetupFileView configura el TreeView para mostrar archivos y carpetas
 func (app *GTKApp) SetupFileView(treeViewName string) {
     cTreeViewName := C.CString(treeViewName)
     defer C.free(unsafe.Pointer(cTreeViewName))
@@ -1823,7 +1765,6 @@ func (app *GTKApp) SetupFileView(treeViewName string) {
     }
 }
 
-// SetTreeViewPath establece la ruta inicial para el TreeView de archivos
 func (app *GTKApp) SetTreeViewPath(treeViewName, path string) {
     cTreeViewName := C.CString(treeViewName)
     defer C.free(unsafe.Pointer(cTreeViewName))
@@ -1834,37 +1775,6 @@ func (app *GTKApp) SetTreeViewPath(treeViewName, path string) {
         C.gtk_tree_view_set_path((*C.GObject)(widget), cPath)
     }
 }
-
-
-//export goTreeItemDoubleClick
-func goTreeItemDoubleClick(data unsafe.Pointer) {
-    str := C.GoString((*C.char)(data))
-    if treeDoubleClickCallback != nil {
-        parts := strings.Split(str, "|")
-        if len(parts) == 3 {
-            name := parts[0]
-            path := parts[1]
-            fileType := parts[2] // "file" o "directory"
-            
-            treeDoubleClickCallback(name, path, fileType)
-        }
-    }
-}
-var treeDoubleClickCallback func(name, path, fileType string)
-
-// ConnectTreeDoubleClick conecta la señal de doble click
-func (app *GTKApp) ConnectTreeDoubleClick(treeName string, callback func(name, path, fileType string)) {    
-    treeDoubleClickCallback = callback
-    
-    cTreeName := C.CString(treeName)
-    defer C.free(unsafe.Pointer(cTreeName))
-    
-    treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
-    if treeView != nil {
-        // La conexión de la señal ya se hizo en C, solo guardamos el callback
-    }
-}
-
 
 func (app *GTKApp) RefreshTreeView(treeName string) {
     cTreeName := C.CString(treeName)
@@ -1878,23 +1788,47 @@ func (app *GTKApp) RefreshTreeView(treeName string) {
 func (app *GTKApp) GoBackInTreeView(treeName string) {
     cTreeName := C.CString(treeName)
     defer C.free(unsafe.Pointer(cTreeName))
-    
     treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
     if treeView != nil {
         C.gtk_tree_view_go_back((*C.GObject)(unsafe.Pointer(treeView)))
     }
 }
 
+func (app *GTKApp) GetTreeViewPath(treeName string) string {
+    cTreeName := C.CString(treeName)
+    defer C.free(unsafe.Pointer(cTreeName))
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
+    if treeView == nil {
+        return ""
+    }
+    cPath := C.gtk_tree_view_get_current_path((*C.GObject)(unsafe.Pointer(treeView)))
+    defer C.free(unsafe.Pointer(cPath))
+    return C.GoString(cPath)
+}
 
+//export goTreeItemDoubleClick
+func goTreeItemDoubleClick(data unsafe.Pointer) {
+    str := C.GoString((*C.char)(data))
+    if treeDoubleClickCallback != nil {
+        parts := strings.Split(str, "|")
+        if len(parts) == 3 {
+            name := parts[0]
+            path := parts[1]
+            fileType := parts[2] // "file" o "directory"
+            treeDoubleClickCallback(name, path, fileType)
+        }
+    }
+}
 
-
-
-
-
-
-
-
-
+func (app *GTKApp) ConnectTreeDoubleClick(treeName string, callback func(name, path, fileType string)) {    
+    treeDoubleClickCallback = callback
+    cTreeName := C.CString(treeName)
+    defer C.free(unsafe.Pointer(cTreeName))
+    treeView := (*C.GtkTreeView)(unsafe.Pointer(C.gtk_builder_get_object(app.builder, cTreeName)))
+    if treeView != nil {
+        // La conexión de la señal ya se hizo en C, solo guardamos el callback
+    }
+}
 
 
                 /* GtkProgressBar */
@@ -2081,9 +2015,7 @@ func (app *GTKApp) StopSpinner(spinnerName string) {
 }
 
 
-
-
-// GetObjectClass returns the GTK class name (type) of a widget as a string
+/* Implementacion para reducir codigo en un Futuro */
 func (app *GTKApp) GetObjectClass(widgetName string) string {
     cWidgetName := C.CString(widgetName)
     defer C.free(unsafe.Pointer(cWidgetName))

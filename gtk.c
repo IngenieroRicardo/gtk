@@ -866,3 +866,22 @@ void gtk_tree_view_set_path(GObject *tree_view, const gchar *path) {
         populate_file_model(GTK_TREE_STORE(model), path);
     }
 }
+
+// Función para obtener la ruta actual del TreeView
+gchar* gtk_tree_view_get_current_path(GObject *tree_view) {
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(tree_view));
+    if (model == NULL) {
+        return g_strdup("");
+    }
+
+    GtkTreeIter iter;
+    if (!gtk_tree_model_get_iter_first(model, &iter)) {
+        return g_strdup("");
+    }
+
+    gchar *path;
+    gtk_tree_model_get(model, &iter, 2, &path, -1);
+    
+    // Devolver una copia para que Go pueda manejar la memoria
+    return g_strdup(path ? path : "");
+}
