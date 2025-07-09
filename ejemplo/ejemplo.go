@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"path/filepath"
 	gui "github.com/IngenieroRicardo/gtk" 
 )
 
@@ -204,7 +205,7 @@ func main() {
 	)
 
 
-	/* GtkTreeView y GtkStatusbar y GtkToolButton */
+	/* TABLA: GtkTreeView y GtkStatusbar y GtkToolButton */
 	jsonData := `{
 	    "columns": ["Name", "Value", "Active"],
 	    "rows": [
@@ -272,7 +273,111 @@ func main() {
 	        app.SetStatusBar("statusbar_main", "Fila: "+rowStr+" Celda editada: fila="+strconv.Itoa(row)+", col="+strconv.Itoa(col)+", nuevo valor="+newValue)
 	    }
 	})
-	
+
+
+	/* JSON: GtkTreeView y GtkStatusbar y GtkToolButton */
+	jsonString := `[{
+		"foto": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAArSURBVBhXY/iPA0AlGBgwGFAKlwQmAKrAIgcVRZODCsI5cAAVgVDo4P9/AHe4m2U/OJCWAAAAAElFTkSuQmCC",
+		"nombre": "Ana López",
+		"edad": 28,
+		"activo": true,
+		"direccion": {
+			"calle": "Calle Ejemplo 456",
+			"ciudad": "Ciudad Demo"
+		},
+		"telefonos": ["555-1234", "555-5678"],
+		"hijos": null
+	}, {
+		"nombre": "Ana López",
+		"edad": 28,
+		"activo": true,
+		"direccion": {
+			"calle": "Calle Ejemplo 456",
+			"ciudad": "Ciudad Demo"
+		},
+		"telefonos": ["555-1234", "555-5678"],
+		"hijos": null
+	}]`
+	if err := app.LoadJSONTree("treeview_json", jsonString); err != nil {
+		fmt.Println("Error cargando JSON:", err)
+		os.Exit(1)
+	}
+
+	app.ConnectSignal(
+		"button_json",
+		"clicked",
+		func() {
+			go app.LoadJSONTree("treeview_json", `["prueba1","prueba2","prueba3"]`)
+		},
+	)
+	app.ConnectSignal(
+		"button_expandir",
+		"clicked",
+		func() {
+			app.ExpandAll("treeview_json")
+		},
+	)
+	app.ConnectSignal(
+		"button_retraer",
+		"clicked",
+		func() {
+			app.CollapseAll("treeview_json")
+		},
+	)
+
+
+	/* FILE: GtkTreeView y GtkStatusbar y GtkToolButton */
+	ex, err := os.Executable()
+	exPath := "./"
+	if err == nil {
+		exPath = filepath.Dir(ex)
+	}
+	app.SetupFileView("treeview_file")
+	app.SetTreeViewPath("treeview_file", exPath)
+	app.ExpandAll("treeview_file")
+
+	app.ConnectSignal(
+		"button_actualizar",
+		"clicked",
+		func() {
+			app.RefreshTreeView("treeview_file")
+			app.ExpandAll("treeview_file")
+		},
+	)
+	app.ConnectSignal(
+		"button_atras",
+		"clicked",
+		func() {
+			if exPath != app.GetTreeViewPath("treeview_file") {
+				app.GoBackInTreeView("treeview_file")
+				app.ExpandAll("treeview_file")
+			}
+		},
+	)
+	app.ConnectSignal(
+		"button_expandirfile",
+		"clicked",
+		func() {
+			app.ExpandAll("treeview_file")
+		},
+	)
+	app.ConnectSignal(
+		"button_retraerfile",
+		"clicked",
+		func() {
+			app.CollapseAll("treeview_file")
+		},
+	)
+
+	app.ConnectTreeDoubleClick("treeview_file", func(name, path, fileType string) {
+	    if fileType == "directory" {
+	        app.SetTreeViewPath("treeview_file", path)
+	        app.SetStatusBar("statusbar_main", "Aperturo Directorio en TreeView")
+	    } else {
+	        app.SetStatusBar("statusbar_main", "Elemento seleccionado: Nombre: "+name+" Ruta: "+path+" Tipo:"+fileType)
+	    }
+	})
+
 	
 	/* Ejecutar la GUI de la APP sin cerrar hasta que se destruya */
 	app.Run(window)
