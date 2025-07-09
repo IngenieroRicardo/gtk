@@ -2,7 +2,11 @@
 #include <gtk/gtkspinner.h> 
 #include <stdlib.h>
 #include <glib-object.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
+extern void goTreeItemDoubleClick(gpointer data);
+extern void goSetClipboardText(gpointer text);
 extern void goCallbackProxy(gpointer data);
 
 typedef struct {
@@ -509,4 +513,356 @@ const gchar* get_object_class_name(GObject *object) {
     }
     GType gtype = G_OBJECT_TYPE(object);
     return g_type_name(gtype);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void tree_store_set_string(GtkTreeStore* store, GtkTreeIter* iter, int col, const char* val) {
+    gtk_tree_store_set(store, iter,
+        col, val,
+        -1);
+}
+
+// Modifica la función tree_view_button_press_event
+gboolean tree_view_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
+    if (event->button == GDK_BUTTON_SECONDARY) {
+        GtkWidget *menu = GTK_WIDGET(user_data);
+        gtk_menu_popup_at_pointer(GTK_MENU(menu), (GdkEvent*)event);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+// Modifica tree_selection_changed
+void tree_selection_changed(GtkTreeSelection *selection, gpointer user_data) {
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    
+    if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        gchar *value;
+        gtk_tree_model_get(model, &iter, 2, &value, -1); // Columna 2 es Value
+        
+        if (value != NULL) {
+            // Llama a la función Go para establecer el texto del portapapeles
+            goSetClipboardText((gpointer)value);
+            g_free(value);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Añadir estas funciones al final del archivo
+GtkTreeStore* create_file_model() {
+    return gtk_tree_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+}
+
+// Añade esta función para obtener el directorio padre
+static gchar* get_parent_directory(const gchar *path) {
+    gchar *parent = g_path_get_dirname(path);
+    // Evitar devolver el mismo path si ya estamos en la raíz
+    if (g_strcmp0(path, parent) == 0) {
+        g_free(parent);
+        return NULL;
+    }
+    return parent;
+}
+
+void populate_file_model(GtkTreeStore *store, const gchar *path) {
+    GtkTreeIter iter;
+    gtk_tree_store_append(store, &iter, NULL);
+    gtk_tree_store_set(store, &iter, 
+                      0, path,
+                      1, "directory",
+                      2, path,
+                      -1);
+    
+    // Agregar un hijo vacío para que aparezca el expander
+    GtkTreeIter child_iter;
+    gtk_tree_store_append(store, &child_iter, &iter);
+    gtk_tree_store_set(store, &child_iter, 
+                      0, "",  // Usamos string vacío en lugar de "Cargando..."
+                      1, "",
+                      2, "",
+                      -1);
+}
+
+void gtk_tree_view_refresh(GObject *tree_view) {
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(tree_view));
+    if (GTK_IS_TREE_STORE(model)) {
+        GtkTreeIter iter;
+        if (gtk_tree_model_get_iter_first(model, &iter)) {
+            gchar *path;
+            gtk_tree_model_get(model, &iter, 2, &path, -1);
+            
+            // Limpiar y recargar el modelo
+            gtk_tree_store_clear(GTK_TREE_STORE(model));
+            populate_file_model(GTK_TREE_STORE(model), path);
+            
+            // Expandir todo después de recargar
+            gtk_tree_view_expand_all(GTK_TREE_VIEW(tree_view));
+            
+            g_free(path);
+        }
+    }
+}
+
+
+// Añade esta función para navegar al directorio padre
+void gtk_tree_view_go_back(GObject *tree_view) {
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(tree_view));
+    if (GTK_IS_TREE_STORE(model)) {
+        GtkTreeIter iter;
+        if (gtk_tree_model_get_iter_first(model, &iter)) {
+            gchar *current_path;
+            gtk_tree_model_get(model, &iter, 2, &current_path, -1);
+            
+            // Obtener el directorio padre
+            gchar *parent_path = g_path_get_dirname(current_path);
+            
+            // Solo si no estamos en la raíz
+            if (strcmp(parent_path, ".") != 0 && strcmp(parent_path, "/") != 0) {
+                gtk_tree_store_clear(GTK_TREE_STORE(model));
+                populate_file_model(GTK_TREE_STORE(model), parent_path);
+            }
+            
+            g_free(current_path);
+            g_free(parent_path);
+        }
+    }
+}
+
+// Actualiza la función del menú contextual
+static gboolean on_tree_view_button_press(GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
+    if (event->button == GDK_BUTTON_SECONDARY) { // Click derecho
+        GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
+        GtkTreeModel *model;
+        GtkTreeIter iter;
+        
+        if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+            // Crear menú contextual
+            GtkWidget *menu = gtk_menu_new();
+            
+            // Opción Recargar
+            GtkWidget *refresh_item = gtk_menu_item_new_with_label("Recargar");
+            g_signal_connect_swapped(refresh_item, "activate", 
+                                    G_CALLBACK(gtk_tree_view_refresh), 
+                                    widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), refresh_item);
+            
+            // Opción Atrás
+            GtkWidget *back_item = gtk_menu_item_new_with_label("Atrás");
+            g_signal_connect_swapped(back_item, "activate", 
+                                   G_CALLBACK(gtk_tree_view_go_back), 
+                                   widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), back_item);
+            
+            // Separador
+            GtkWidget *separator = gtk_separator_menu_item_new();
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), separator);
+            
+            // Mostrar menú
+            gtk_widget_show_all(menu);
+            gtk_menu_popup_at_pointer(GTK_MENU(menu), (GdkEvent*)event);
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+
+// Corrección: Cambiar GtkTreeTreePath por GtkTreePath
+gboolean on_row_expanded(GtkTreeView *tree_view, GtkTreeIter *iter, GtkTreePath *path, gpointer user_data) {
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    GtkTreeStore *store = GTK_TREE_STORE(model);
+    
+    gchar *full_path;
+    GValue value = G_VALUE_INIT;
+    
+    // Obtener la ruta completa del directorio
+    gtk_tree_model_get_value(model, iter, 2, &value);
+    full_path = g_strdup(g_value_get_string(&value));
+    g_value_unset(&value);
+    
+    if (full_path == NULL) {
+        return FALSE;
+    }
+    
+    // Verificar si ya tiene hijos reales (no solo el placeholder)
+    GtkTreeIter child_iter;
+    gboolean has_real_children = FALSE;
+    
+    if (gtk_tree_model_iter_children(model, &child_iter, iter)) {
+        gchar *child_text;
+        gtk_tree_model_get(model, &child_iter, 0, &child_text, -1);
+        
+        // Si el primer hijo no está vacío, ya tiene hijos reales
+        has_real_children = (g_strcmp0(child_text, "") != 0);
+        g_free(child_text);
+    }
+    
+    // Solo cargar si no tiene hijos reales
+    if (!has_real_children) {
+        // Eliminar el placeholder si existe
+        if (gtk_tree_model_iter_children(model, &child_iter, iter)) {
+            gtk_tree_store_remove(store, &child_iter);
+        }
+        
+        // Cargar el contenido real del directorio
+        DIR *dir;
+        struct dirent *entry;
+        struct stat statbuf;
+        
+        if ((dir = opendir(full_path)) != NULL) {
+            while ((entry = readdir(dir)) != NULL) {
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+                    continue;
+                }
+                
+                gchar *child_path = g_build_filename(full_path, entry->d_name, NULL);
+                if (stat(child_path, &statbuf) == 0) {
+                    GtkTreeIter new_child_iter;
+                    gtk_tree_store_append(store, &new_child_iter, iter);
+                    
+                    const gchar *type = S_ISDIR(statbuf.st_mode) ? "directory" : "file";
+                    gtk_tree_store_set(store, &new_child_iter, 
+                                      0, entry->d_name,
+                                      1, type,
+                                      2, child_path,
+                                      -1);
+                    
+                    // Si es directorio, agregar un hijo vacío para mostrar el expander
+                    if (S_ISDIR(statbuf.st_mode)) {
+                        GtkTreeIter dummy_iter;
+                        gtk_tree_store_append(store, &dummy_iter, &new_child_iter);
+                        gtk_tree_store_set(store, &dummy_iter, 
+                                          0, "",
+                                          1, "",
+                                          2, "",
+                                          -1);
+                    }
+                }
+                g_free(child_path);
+            }
+            closedir(dir);
+        }
+    }
+    
+    g_free(full_path);
+    return FALSE;
+}
+
+
+// Función puente para el doble click
+void on_tree_item_activated(GtkTreeView *tree_view, 
+                          GtkTreePath *path,
+                          GtkTreeViewColumn *column,
+                          gpointer user_data) {
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    GtkTreeIter iter;
+    
+    if (gtk_tree_model_get_iter(model, &iter, path)) {
+        gchar *name, *full_path, *type;
+        gtk_tree_model_get(model, &iter, 
+                          0, &name,      // Nombre del item
+                          1, &type,      // Tipo (file/directory)
+                          2, &full_path, // Ruta completa
+                          -1);
+        
+        // Formato: "nombre|ruta|tipo"
+        gchar *result = g_strdup_printf("%s|%s|%s", name, full_path, type);
+        
+        goTreeItemDoubleClick((gpointer)result);
+        
+        g_free(name);
+        g_free(type);
+        g_free(full_path);
+        g_free(result);
+    }
+}
+
+void gtk_tree_view_setup_file_view(GObject *tree_view) {
+    // Crear modelo
+    GtkTreeStore *store = create_file_model();
+    
+    // Configurar columnas (sin texto de encabezado)
+    GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+    GtkTreeViewColumn *column = gtk_tree_view_column_new();
+    gtk_tree_view_column_pack_start(column, renderer, TRUE);
+    gtk_tree_view_column_add_attribute(column, renderer, "text", 0);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(tree_view), column);
+    
+    // Ocultar los encabezados
+    gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(tree_view), FALSE);
+    
+    // Establecer modelo
+    gtk_tree_view_set_model(GTK_TREE_VIEW(tree_view), GTK_TREE_MODEL(store));
+    g_object_unref(store);
+    
+    // Configurar propiedades visuales del árbol
+    gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(tree_view), TRUE);
+    
+    // Conectar señal para cargar contenido dinámico al expandir
+    g_signal_connect(tree_view, "row-expanded", 
+                    G_CALLBACK(on_row_expanded), NULL);
+
+    // Conectar señal de doble click (row-activated)
+    g_signal_connect(tree_view, "row-activated", 
+                    G_CALLBACK(on_tree_item_activated), NULL);
+
+    // Conectar señal de click derecho
+    g_signal_connect(tree_view, "button-press-event", 
+                    G_CALLBACK(on_tree_view_button_press), NULL);
+
+}
+
+void gtk_tree_view_set_path(GObject *tree_view, const gchar *path) {
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(tree_view));
+    if (GTK_IS_TREE_STORE(model)) {
+        gtk_tree_store_clear(GTK_TREE_STORE(model));
+        populate_file_model(GTK_TREE_STORE(model), path);
+    }
 }
