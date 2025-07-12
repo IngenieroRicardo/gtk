@@ -114,6 +114,15 @@ extern void gtk_tree_view_refresh(GObject *tree_view);
 extern void gtk_tree_view_go_back(GObject *tree_view);
 extern gchar* gtk_tree_view_get_current_path(GObject *tree_view);
 
+
+
+
+// Define nuestro tipo de callback para g_idle_add
+typedef gboolean (*GIdleCallback)(gpointer user_data);
+
+// Declaración de la función proxy que llamaremos desde Go
+extern gboolean goIdleCallback(gpointer user_data);
+
 */
 import "C"
 import (
@@ -144,10 +153,47 @@ var (
     clipboardText string
     clipboardMutex sync.Mutex
     treeDoubleClickCallback func(name, path, fileType string)
+    idleCallbacks   = make(map[uintptr]func())
+    idleCallbackMutex sync.Mutex
+    idleCounter uintptr
 )
 
 type GTKApp struct {
     builder *C.GtkBuilder
+}
+
+//export goIdleCallback
+func goIdleCallback(user_data unsafe.Pointer) C.gboolean {
+    id := uintptr(user_data)
+    idleCallbackMutex.Lock()
+    callback, exists := idleCallbacks[id]
+    if exists {
+        delete(idleCallbacks, id)
+    }
+    idleCallbackMutex.Unlock()
+    
+    if exists && callback != nil {
+        callback()
+    }
+    return C.FALSE // Indicar que no queremos que se repita
+}
+
+func (app *GTKApp) RunOnUIThread(f func()) {
+    if f == nil {
+        return
+    }
+
+    idleCallbackMutex.Lock()
+    id := idleCounter
+    idleCounter++
+    idleCallbacks[id] = f
+    idleCallbackMutex.Unlock()
+    
+    // Convertimos el ID a gpointer (que es compatible con unsafe.Pointer)
+    C.g_idle_add(
+        (C.GIdleCallback)(unsafe.Pointer(C.goIdleCallback)),
+        (C.gpointer)(unsafe.Pointer(id)),
+    )
 }
 
 //export goCallbackProxy
