@@ -685,6 +685,84 @@ void gtk_tree_view_go_back(GObject *tree_view) {
 
 
 
+// Elimina archivos o directorios de forma recursiva
+static int delete_recursive(const gchar *path) {
+    struct stat statbuf;
+
+    if (stat(path, &statbuf) != 0) {
+        return -1; // No se pudo obtener info
+    }
+
+    if (S_ISDIR(statbuf.st_mode)) {
+        DIR *dir = opendir(path);
+        if (!dir) return -1;
+
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL) {
+            if (g_strcmp0(entry->d_name, ".") == 0 || g_strcmp0(entry->d_name, "..") == 0)
+                continue;
+
+            gchar *child_path = g_build_filename(path, entry->d_name, NULL);
+            if (delete_recursive(child_path) != 0) {
+                g_free(child_path);
+                closedir(dir);
+                return -1;
+            }
+            g_free(child_path);
+        }
+        closedir(dir);
+
+        return rmdir(path); // borrar el directorio una vez vacío
+    } else {
+        return remove(path); // eliminar archivo
+    }
+}
+
+
+static void on_delete_item_activate(GtkMenuItem *menuitem, gpointer user_data) {
+    GtkWidget *tree_view = GTK_WIDGET(user_data);
+    GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+
+    if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        gchar *name, *path, *type;
+        gtk_tree_model_get(model, &iter, 0, &name, 1, &type, 2, &path, -1);
+
+        // Preguntar confirmación al usuario
+        gchar *msg = g_strdup_printf("¿Seguro que quieres eliminar \"%s\"?", name);
+        GtkWidget *dialog = gtk_message_dialog_new(NULL,
+                                                   GTK_DIALOG_MODAL,
+                                                   GTK_MESSAGE_WARNING,
+                                                   GTK_BUTTONS_OK_CANCEL,
+                                                   "%s", msg);
+        gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+        g_free(msg);
+
+        if (response == GTK_RESPONSE_OK) {
+            int status = -1;
+
+            status = delete_recursive(path);
+
+            if (status == 0) {
+                gtk_tree_view_refresh(G_OBJECT(tree_view)); // refrescar árbol
+            } else {
+                GtkWidget *err_dialog = gtk_message_dialog_new(NULL,
+                        GTK_DIALOG_MODAL,
+                        GTK_MESSAGE_ERROR,
+                        GTK_BUTTONS_CLOSE,
+                        "No se pudo eliminar: %s", path);
+                gtk_dialog_run(GTK_DIALOG(err_dialog));
+                gtk_widget_destroy(err_dialog);
+            }
+        }
+
+        g_free(name);
+        g_free(type);
+        g_free(path);
+    }
+}
 
 
 static void on_rename_item_activate(GtkMenuItem *menuitem, gpointer user_data) {
@@ -719,7 +797,14 @@ static void on_rename_item_activate(GtkMenuItem *menuitem, gpointer user_data) {
             if (rename(path, new_path) == 0) {
                 gtk_tree_view_refresh(G_OBJECT(tree_view)); // refrescar
             } else {
-                g_printerr("Error al renombrar %s a %s\n", path, new_path);
+            
+            	GtkWidget *err_dialog = gtk_message_dialog_new(NULL,
+            	                        GTK_DIALOG_MODAL,
+            	                        GTK_MESSAGE_ERROR,
+            	                        GTK_BUTTONS_CLOSE,
+            	                        "Error al renombrar %s a %s", path, new_path);
+            	                gtk_dialog_run(GTK_DIALOG(err_dialog));
+            	                gtk_widget_destroy(err_dialog);
             }
 
             g_free(parent_dir);
@@ -777,6 +862,12 @@ static gboolean on_tree_view_button_press(GtkWidget *widget, GdkEventButton *eve
 	GtkWidget *rename_item = gtk_menu_item_new_with_label("Renombrar");
     g_signal_connect(rename_item, "activate", G_CALLBACK(on_rename_item_activate), widget);
     gtk_menu_shell_append(GTK_MENU_SHELL(menu), rename_item);
+
+
+// Opción Eliminar
+GtkWidget *delete_item = gtk_menu_item_new_with_label("Eliminar");
+g_signal_connect(delete_item, "activate", G_CALLBACK(on_delete_item_activate), widget);
+gtk_menu_shell_append(GTK_MENU_SHELL(menu), delete_item);
 
             
             // Mostrar menú
