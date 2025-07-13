@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <gtk/gtk.h>
 #include <gtk/gtkspinner.h> 
 #include <stdlib.h>
@@ -675,6 +676,74 @@ void gtk_tree_view_go_back(GObject *tree_view) {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+static void on_rename_item_activate(GtkMenuItem *menuitem, gpointer user_data) {
+    GtkWidget *tree_view = GTK_WIDGET(user_data);
+    GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+
+    if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        gchar *old_name, *path;
+        gtk_tree_model_get(model, &iter, 0, &old_name, 2, &path, -1);
+
+        // Crear un diálogo de entrada para el nuevo nombre
+        GtkWidget *dialog = gtk_dialog_new_with_buttons("Renombrar",
+                                                        NULL,
+                                                        GTK_DIALOG_MODAL,
+                                                        "_Cancelar", GTK_RESPONSE_CANCEL,
+                                                        "_Renombrar", GTK_RESPONSE_ACCEPT,
+                                                        NULL);
+        GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+        GtkWidget *entry = gtk_entry_new();
+        gtk_entry_set_text(GTK_ENTRY(entry), old_name);
+        gtk_box_pack_start(GTK_BOX(content_area), entry, TRUE, TRUE, 0);
+        gtk_widget_show_all(dialog);
+
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+            const gchar *new_name = gtk_entry_get_text(GTK_ENTRY(entry));
+            gchar *parent_dir = g_path_get_dirname(path);
+            gchar *new_path = g_build_filename(parent_dir, new_name, NULL);
+
+            // Intentar renombrar usando rename()
+            if (rename(path, new_path) == 0) {
+                gtk_tree_view_refresh(G_OBJECT(tree_view)); // refrescar
+            } else {
+                g_printerr("Error al renombrar %s a %s\n", path, new_path);
+            }
+
+            g_free(parent_dir);
+            g_free(new_path);
+        }
+
+        gtk_widget_destroy(dialog);
+        g_free(old_name);
+        g_free(path);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Actualiza la función del menú contextual
 static gboolean on_tree_view_button_press(GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
     if (event->button == GDK_BUTTON_SECONDARY) { // Click derecho
@@ -698,11 +767,17 @@ static gboolean on_tree_view_button_press(GtkWidget *widget, GdkEventButton *eve
             g_signal_connect_swapped(back_item, "activate", 
                                    G_CALLBACK(gtk_tree_view_go_back), 
                                    widget);
-            gtk_menu_shell_append(GTK_MENU_SHELL(menu), back_item);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), back_item);	
             
             // Separador
             GtkWidget *separator = gtk_separator_menu_item_new();
             gtk_menu_shell_append(GTK_MENU_SHELL(menu), separator);
+
+	//on_rename_item_activate
+	GtkWidget *rename_item = gtk_menu_item_new_with_label("Renombrar");
+    g_signal_connect(rename_item, "activate", G_CALLBACK(on_rename_item_activate), widget);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), rename_item);
+
             
             // Mostrar menú
             gtk_widget_show_all(menu);
