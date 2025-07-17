@@ -645,6 +645,7 @@ void gtk_tree_view_refresh(GObject *tree_view) {
             
             // Expandir todo después de recargar
             gtk_tree_view_expand_all(GTK_TREE_VIEW(tree_view));
+            gtk_tree_view_expand_all(GTK_TREE_VIEW(tree_view));
             
             g_free(path);
         }
@@ -829,6 +830,107 @@ static void on_rename_item_activate(GtkMenuItem *menuitem, gpointer user_data) {
 
 
 
+// Funciones para crear archivo y carpeta
+static void on_create_file_activate(GtkMenuItem *menuitem, gpointer user_data) {
+    GtkWidget *tree_view = GTK_WIDGET(user_data);
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(tree_view));
+    GtkTreeIter iter;
+    gchar *current_path = NULL;
+
+    // Obtener el directorio actual
+    if (gtk_tree_model_get_iter_first(model, &iter)) {
+        gtk_tree_model_get(model, &iter, 2, &current_path, -1);
+    }
+
+    if (current_path) {
+        // Diálogo para ingresar el nombre del nuevo archivo
+        GtkWidget *dialog = gtk_dialog_new_with_buttons("Nuevo archivo",
+                                                       NULL,
+                                                       GTK_DIALOG_MODAL,
+                                                       "_Cancelar", GTK_RESPONSE_CANCEL,
+                                                       "_Crear", GTK_RESPONSE_ACCEPT,
+                                                       NULL);
+        GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+        GtkWidget *entry = gtk_entry_new();
+        gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Nombre del archivo");
+        gtk_box_pack_start(GTK_BOX(content_area), entry, TRUE, TRUE, 0);
+        gtk_widget_show_all(dialog);
+
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+            const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry));
+            gchar *filepath = g_build_filename(current_path, filename, NULL);
+
+            // Crear el archivo
+            FILE *file = fopen(filepath, "w");
+            if (file) {
+                fclose(file);
+                gtk_tree_view_refresh(G_OBJECT(tree_view)); // Refrescar la vista
+            } else {
+                GtkWidget *err_dialog = gtk_message_dialog_new(NULL,
+                        GTK_DIALOG_MODAL,
+                        GTK_MESSAGE_ERROR,
+                        GTK_BUTTONS_CLOSE,
+                        "No se pudo crear el archivo: %s", filepath);
+                gtk_dialog_run(GTK_DIALOG(err_dialog));
+                gtk_widget_destroy(err_dialog);
+            }
+            g_free(filepath);
+        }
+        gtk_widget_destroy(dialog);
+        g_free(current_path);
+    }
+}
+
+static void on_create_folder_activate(GtkMenuItem *menuitem, gpointer user_data) {
+    GtkWidget *tree_view = GTK_WIDGET(user_data);
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(tree_view));
+    GtkTreeIter iter;
+    gchar *current_path = NULL;
+
+    // Obtener el directorio actual
+    if (gtk_tree_model_get_iter_first(model, &iter)) {
+        gtk_tree_model_get(model, &iter, 2, &current_path, -1);
+    }
+
+    if (current_path) {
+        // Diálogo para ingresar el nombre de la nueva carpeta
+        GtkWidget *dialog = gtk_dialog_new_with_buttons("Nueva carpeta",
+                                                       NULL,
+                                                       GTK_DIALOG_MODAL,
+                                                       "_Cancelar", GTK_RESPONSE_CANCEL,
+                                                       "_Crear", GTK_RESPONSE_ACCEPT,
+                                                       NULL);
+        GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+        GtkWidget *entry = gtk_entry_new();
+        gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Nombre de la carpeta");
+        gtk_box_pack_start(GTK_BOX(content_area), entry, TRUE, TRUE, 0);
+        gtk_widget_show_all(dialog);
+
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+            const gchar *foldername = gtk_entry_get_text(GTK_ENTRY(entry));
+            gchar *folderpath = g_build_filename(current_path, foldername, NULL);
+
+            // Crear la carpeta (con permisos 0755)
+            if (g_mkdir_with_parents(folderpath, 0755) == 0) {
+                gtk_tree_view_refresh(G_OBJECT(tree_view)); // Refrescar la vista
+            } else {
+                GtkWidget *err_dialog = gtk_message_dialog_new(NULL,
+                        GTK_DIALOG_MODAL,
+                        GTK_MESSAGE_ERROR,
+                        GTK_BUTTONS_CLOSE,
+                        "No se pudo crear la carpeta: %s", folderpath);
+                gtk_dialog_run(GTK_DIALOG(err_dialog));
+                gtk_widget_destroy(err_dialog);
+            }
+            g_free(folderpath);
+        }
+        gtk_widget_destroy(dialog);
+        g_free(current_path);
+    }
+}
+
+
+
 // Actualiza la función del menú contextual
 static gboolean on_tree_view_button_press(GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
     if (event->button == GDK_BUTTON_SECONDARY) { // Click derecho
@@ -853,15 +955,39 @@ static gboolean on_tree_view_button_press(GtkWidget *widget, GdkEventButton *eve
                                    G_CALLBACK(gtk_tree_view_go_back), 
                                    widget);
             gtk_menu_shell_append(GTK_MENU_SHELL(menu), back_item);	
-            
-            // Separador
-            GtkWidget *separator = gtk_separator_menu_item_new();
-            gtk_menu_shell_append(GTK_MENU_SHELL(menu), separator);
 
-	//on_rename_item_activate
-	GtkWidget *rename_item = gtk_menu_item_new_with_label("Renombrar");
-    g_signal_connect(rename_item, "activate", G_CALLBACK(on_rename_item_activate), widget);
-    gtk_menu_shell_append(GTK_MENU_SHELL(menu), rename_item);
+
+
+
+
+            // Separador
+            GtkWidget *separator1 = gtk_separator_menu_item_new();
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), separator1);
+
+            // Opción Crear archivo
+            GtkWidget *create_file_item = gtk_menu_item_new_with_label("Crear archivo");
+            g_signal_connect(create_file_item, "activate", 
+                            G_CALLBACK(on_create_file_activate), 
+                            widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), create_file_item);
+
+            // Opción Crear carpeta
+            GtkWidget *create_folder_item = gtk_menu_item_new_with_label("Crear carpeta");
+            g_signal_connect(create_folder_item, "activate", 
+                           G_CALLBACK(on_create_folder_activate), 
+                           widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), create_folder_item);
+
+
+            
+// Separador
+GtkWidget *separator2 = gtk_separator_menu_item_new();
+gtk_menu_shell_append(GTK_MENU_SHELL(menu), separator2);
+
+//on_rename_item_activate
+GtkWidget *rename_item = gtk_menu_item_new_with_label("Renombrar");
+g_signal_connect(rename_item, "activate", G_CALLBACK(on_rename_item_activate), widget);
+gtk_menu_shell_append(GTK_MENU_SHELL(menu), rename_item);
 
 
 // Opción Eliminar
