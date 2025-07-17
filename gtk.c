@@ -1051,3 +1051,8 @@ gchar* gtk_tree_view_get_current_path(GObject *tree_view) {
     // Devolver una copia para que Go pueda manejar la memoria
     return g_strdup(path ? path : "");
 }
+
+
+char* gtk_file_chooser_get_current_folder_wrapper(GObject* chooser) {
+    return gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER(chooser));
+}

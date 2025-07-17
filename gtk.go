@@ -123,6 +123,8 @@ typedef gboolean (*GIdleCallback)(gpointer user_data);
 // Declaración de la función proxy que llamaremos desde Go
 extern gboolean goIdleCallback(gpointer user_data);
 
+
+extern char* gtk_file_chooser_get_current_folder_wrapper(GObject* chooser);
 */
 import "C"
 import (
@@ -946,7 +948,7 @@ func (app *GTKApp) GetStatusBar(statusbarName string) string {
     return ""
 }
 
-                /* GtkStatusbar */
+                /* GtkImage */
 
 func (app *GTKApp) SetImageFromFile(imageName, filename string) {
     cImageName := C.CString(imageName)
@@ -2023,6 +2025,18 @@ func (app *GTKApp) GetSelectedFilePath(dialogName string) string {
     dialog := C.gtk_builder_get_object(app.builder, cDialogName)
     if dialog != nil {
         cPath := C.gtk_file_chooser_get_filename_wrapper((*C.GObject)(dialog))
+        defer C.g_free(C.gpointer(cPath)) // Importante: liberar la memoria
+        return C.GoString(cPath)
+    }
+    return ""
+}
+
+func (app *GTKApp) GetOpenedDirPath(dialogName string) string {
+    cDialogName := C.CString(dialogName)
+    defer C.free(unsafe.Pointer(cDialogName))
+    dialog := C.gtk_builder_get_object(app.builder, cDialogName)
+    if dialog != nil {
+        cPath := C.gtk_file_chooser_get_current_folder_wrapper((*C.GObject)(dialog))
         defer C.g_free(C.gpointer(cPath)) // Importante: liberar la memoria
         return C.GoString(cPath)
     }
